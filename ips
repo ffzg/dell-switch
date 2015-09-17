@@ -1,0 +1,1 @@
+ls log/*.log | cut -d/ -f2 | cut -d_ -f1 | sed 's/\./ /g' | sort -n -k 4 | sed 's/ /./g'
