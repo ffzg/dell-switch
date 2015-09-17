@@ -44,6 +44,8 @@ chdir 'log';
 
 sub save_log {
 	my ($ip, $hostname, $command, $buff) = @_;
+
+	return unless $command;
 	
 	my $file = "${ip}_${hostname}_${command}.log";
 	open my $log, '>', $file;
