@@ -19,10 +19,9 @@ my $ip = shift @ARGV || '10.20.0.2';
 my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
+warn "## $ip\n";
 my $ssh = Net::OpenSSH->new('auto@'.$ip);
 my ($pty ,$pid) = $ssh->open2pty();
-
-open my $log, '>', '/tmp/dell.log';
 
 my $buff;
 
@@ -37,8 +36,11 @@ while(1) {
 	} elsif ( $buff =~ m/Password:/ ) {
 		print $pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/#$/ ) {
+	} elsif ( $buff =~ m/([\w\-]+)#$/ ) {
+		my $hostname = $1;
 		if ( $buff ) {
+			mkdir 'log' unless -d 'log';
+			open my $log, '>>', "log/$ip-$hostname.log";
 			print $log $buff;
 			$buff = '';
 		}
