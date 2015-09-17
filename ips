@@ -1,1 +1,3 @@
-ls log/*.log | cut -d/ -f2 | cut -d_ -f1 | sed 's/\./ /g' | sort -n -k 4 | sed 's/ /./g'
+COLS=1
+test ! -z "$1" && COLS=$1
+ls log/*.log | cut -d/ -f2 | cut -d_ -f$COLS | sed 's/\./ /g' | sort -n -k 4 | sed -e 's/ /./g' -e 's/_/ /g'
