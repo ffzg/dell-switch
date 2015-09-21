@@ -15,7 +15,7 @@ require 'config.pl';
 
 #$Net::OpenSSH::debug = ~0;
 
-my $ip = shift @ARGV || '10.20.0.2';
+my $ip = shift @ARGV || die "usage: $0 IP command[ command ...]\n";
 my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
@@ -87,7 +87,7 @@ while(1) {
 		}
 	} elsif ( $buff =~ m/% Unrecognized command/ ) {
 		exit 1;
-	} elsif ( $buff =~ s{More: <space>,  Quit: q, One line: <return> }{} ) {
+	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return> }{} ) {
 		send_pty " ";
 	} elsif ( $buff =~ s{\e\[0m\r\s+\r}{} ) {
 	}
