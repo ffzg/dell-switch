@@ -1,0 +1,1 @@
+grep -i $1 log/*address-table* | sed -e 's/log\///' -e 's/_show.*log:/\t/' -e 's/_/ /'
