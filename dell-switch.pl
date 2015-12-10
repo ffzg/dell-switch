@@ -22,6 +22,10 @@ my @commands = @ARGV;
 warn "## $ip\n";
 my $ssh = Net::OpenSSH->new('auto@'.$ip);
 my ($pty ,$pid) = $ssh->open2pty();
+if ( ! $pty ) {
+	warn "ERROR: can't connect to $ip, skipping";
+	exit 0;
+}
 
 my $buff;
 
