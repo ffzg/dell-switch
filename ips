@@ -1,3 +1,4 @@
 COLS=1
 test ! -z "$1" && COLS=$1
+test "`basename $0`" == "hosts" && COLS=1,2
 ls log/*.log | cut -d/ -f2 | cut -d_ -f$COLS | sed 's/\./ /g' | sort -n -k 4 -u | sed -e 's/ /./g' -e 's/_/ /g'
