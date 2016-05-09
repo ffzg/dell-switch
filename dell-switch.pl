@@ -74,6 +74,8 @@ while(1) {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
+	} elsif ( $buff =~ m/([\w\-]+)>$/ ) {
+		send_pty "enable\n";
 	} elsif ( $buff =~ m/([\w\-]+)#$/ ) {
 		my $hostname = $1;
 		if ( $buff ) {
@@ -93,6 +95,8 @@ while(1) {
 		exit 1;
 	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return> }{} ) {
 		send_pty " ";
+	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
+		send_pty " "
 	} elsif ( $buff =~ s{\e\[0m\r\s+\r}{} ) {
 	}
 }
