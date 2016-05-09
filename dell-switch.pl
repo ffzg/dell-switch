@@ -20,7 +20,7 @@ my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
 warn "## $ip\n";
-my $ssh = Net::OpenSSH->new('auto@'.$ip);
+my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd);
 my ($pty ,$pid) = $ssh->open2pty();
 if ( ! $pty ) {
 	warn "ERROR: can't connect to $ip, skipping";
