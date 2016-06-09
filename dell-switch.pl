@@ -36,6 +36,8 @@ sub send_pty {
 		print STDERR "[$_]" if $debug;
 		syswrite $pty, $_;
 #		$pty->flush;
+		sleep 0.05;
+
 		sysread $pty, my $echo, 1;
 		print STDERR $echo;
 		$buff .= $echo;
@@ -94,8 +96,10 @@ while(1) {
 	} elsif ( $buff =~ m/% Unrecognized command/ ) {
 		exit 1;
 	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return> }{} ) {
+		sleep 0.5;
 		send_pty " ";
 	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
+		sleep 0.5;
 		send_pty " "
 	} elsif ( $buff =~ s{\e\[0m\r\s+\r}{} ) {
 	}
