@@ -19,7 +19,7 @@ my $ip = shift @ARGV || die "usage: $0 IP command[ command ...]\n";
 my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
-warn "## $ip\n";
+warn "\n## ssh $ip\n";
 my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd);
 my ($pty ,$pid) = $ssh->open2pty();
 if ( ! $pty ) {
@@ -76,8 +76,6 @@ while(1) {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/\b([\w\-]+)>$/ ) {
-		send_pty "enable\n";
 	} elsif ( $buff =~ m/([\w\-]+)#$/ ) {
 		my $hostname = $1;
 		if ( $buff ) {
@@ -95,12 +93,14 @@ while(1) {
 		}
 	} elsif ( $buff =~ m/% Unrecognized command/ ) {
 		exit 1;
-	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return> }{} ) {
-		sleep 0.5;
+	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return>\s*}{} ) {
 		send_pty " ";
 	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
-		send_pty " "
-	} elsif ( $buff =~ s{\e\[0m\r\s+\r}{} ) {
+		send_pty " ";
+	} elsif ( $buff =~ s{\e\[0m\s*\r\s+\r}{} ) {
+		# nop
+	} elsif ( $buff =~ m/^[\r\n]+[\w\-]+>$/ ) {
+		send_pty "enable\n";
 	}
 }
 
