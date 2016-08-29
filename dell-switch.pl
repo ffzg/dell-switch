@@ -35,7 +35,7 @@ sub send_pty {
 	foreach (split //, $string) {
 		print STDERR "[$_]" if $debug;
 		syswrite $pty, $_;
-#		$pty->flush;
+		#$pty->flush;
 		sleep 0.05;
 
 		sysread $pty, my $echo, 1;
@@ -76,7 +76,7 @@ while(1) {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/([\w\-]+)>$/ ) {
+	} elsif ( $buff =~ m/\b([\w\-]+)>$/ ) {
 		send_pty "enable\n";
 	} elsif ( $buff =~ m/([\w\-]+)#$/ ) {
 		my $hostname = $1;
@@ -99,7 +99,6 @@ while(1) {
 		sleep 0.5;
 		send_pty " ";
 	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
-		sleep 0.5;
 		send_pty " "
 	} elsif ( $buff =~ s{\e\[0m\r\s+\r}{} ) {
 	}
@@ -109,4 +108,4 @@ __DATA__
 show arp
 show vlan
 show running-config
-show bridge address-table
+show bridge address
