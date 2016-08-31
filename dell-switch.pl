@@ -105,7 +105,10 @@ while(1) {
 }
 
 __DATA__
+show system
 show arp
 show vlan
 show running-config
 show bridge address
+show interfaces status
+
