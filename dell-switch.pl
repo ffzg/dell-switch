@@ -11,6 +11,7 @@ our $login;
 our $passwd;
 our $debug = $ENV{DEBUG} || 0;
 
+use lib '.';
 require 'config.pl';
 
 #$Net::OpenSSH::debug = ~0;
@@ -64,8 +65,9 @@ sub save_log {
 }
 
 my $command;
+my @commands_while = ( @commands );
 
-while(1) {
+while() {
 	my $data;
 	my $read = sysread($pty, $data, 1);
 	print STDERR $data;
@@ -82,7 +84,7 @@ while(1) {
 			save_log $ip, $hostname, $command, $buff;
 			$buff = '';
 		}
-		if ( $command = shift @commands ) {
+		if ( $command = shift @commands_while ) {
 			$command =~ s/[\n\r]+$//;
 			send_pty "$command\n";
 			$buff = '';
