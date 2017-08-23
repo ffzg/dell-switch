@@ -53,6 +53,7 @@ sub save_log {
 	my ($ip, $hostname, $command, $buff) = @_;
 
 	return unless $command;
+	return if $ENV{NO_LOG};
 	
 	my $file = "${ip}_${hostname}_${command}.log";
 	open my $log, '>', $file;
@@ -78,7 +79,7 @@ while() {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/([\w\-]+)#$/ ) {
+	} elsif ( $buff =~ m/([\w\-\(\)]+)#$/ ) {
 		my $hostname = $1;
 		if ( $buff ) {
 			save_log $ip, $hostname, $command, $buff;
@@ -103,6 +104,9 @@ while() {
 		# nop
 	} elsif ( $buff =~ m/^[\r\n]+[\w\-]+>$/ ) {
 		send_pty "enable\n";
+	} elsif ( $buff =~ m{\QOverwrite file [startup-config] ?[Yes/press any key for no]....\E} ) {
+		send_pty "y";
+		$buff = '';
 	}
 }
 

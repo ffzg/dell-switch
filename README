@@ -1,0 +1,14 @@
+./ips | xargs -i ./dell-switch.pl {} "show bridge address"
+
+./ips | xargs -i ./dell-switch.pl {} "show interfaces status"
+
+./ips | xargs -i ./dell-switch.pl {} "show running-config"
+
+This will save all commands executed to git repository under log/
+
+However, somethimes you just need to execute few commands but don't want
+log output (if configuring switches in batch, for example). You can do
+that by setting NO_LOG enviroment variable like this:
+
+grep -A 1 sw-lib /etc/munin/munin.conf | grep 10.20 | awk '{ print $2 }' \
+| NO_LOG=1 xargs -i ./dell-switch.pl 'snmp-server community public-or-not ro view Default' 'exit' 'copy running-config startup-config'
