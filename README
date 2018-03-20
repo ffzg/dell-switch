@@ -18,3 +18,8 @@ To use fans script first pull show system from all switches:
 
 ./ips | xargs -i ./dell-switch.pl {} "show system"
 
+
+Backup switch configuration to tftp server:
+
+./ips 1,2 | awk '{ print "./dell-switch.pl "$1" \"copy startup-config tftp://10.20.0.253/backups/"$2".config\"" }' | NO_LOG=1 sh -x
+

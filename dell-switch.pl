@@ -107,6 +107,8 @@ while() {
 	} elsif ( $buff =~ m{\QOverwrite file [startup-config] ?[Yes/press any key for no]....\E} ) {
 		send_pty "y";
 		$buff = '';
+	} elsif ( $buff =~ s{Management access will be blocked for the duration of the transfer.*Are you sure you want to start\? \(y/n\) }{}s ) {
+		send_pty 'y';
 	}
 }
 
