@@ -12,3 +12,9 @@ that by setting NO_LOG enviroment variable like this:
 
 grep -A 1 sw-lib /etc/munin/munin.conf | grep 10.20 | awk '{ print $2 }' \
 | NO_LOG=1 xargs -i ./dell-switch.pl 'snmp-server community public-or-not ro view Default' 'exit' 'copy running-config startup-config'
+
+
+To use fans script first pull show system from all switches:
+
+./ips | xargs -i ./dell-switch.pl {} "show system"
+
