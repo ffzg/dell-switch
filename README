@@ -23,3 +23,7 @@ Backup switch configuration to tftp server:
 
 ./ips 1,2 | awk '{ print "./dell-switch.pl "$1" \"copy startup-config tftp://10.20.0.253/backups/"$2".config\"" }' | NO_LOG=1 sh -x
 
+
+To use snmp* utils, create snmp.conf with:
+
+COMMUNITY=my-comminity-or-public
