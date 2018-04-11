@@ -1,4 +1,4 @@
 #!/bin/sh -xe
 patt=$*
 test -z "$patt" && patt='.'
-grep -r -i $patt /dev/shm/sw.mac.port/
+grep -r -i $patt /dev/shm/snmp-mac-port/
