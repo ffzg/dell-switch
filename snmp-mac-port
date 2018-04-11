@@ -7,7 +7,7 @@ test -d $log || mkdir $log
 
 snmp_walk() {
 	ip=$1
-	snmpwalk -O0sUX -v2c -Cc -c $COMMUNITY $ip BRIDGE-MIB::dot1dTpFdbPort | sed -e "s/^[^:]*:/$ip/" -e 's/:[^:]*: / /' -e 's/\].*: / /' | tee $log/$ip
+	snmpwalk -O0sUX -v2c -Cc -c $COMMUNITY $ip BRIDGE-MIB::dot1dTpFdbPort | sed -e "s/^[^:]*:/$ip/" -e 's/\].*: / /' | tee $log/$ip
 }
 
 if [ ! -z "$1" ] ; then
