@@ -19,7 +19,8 @@ numports=`$snmp IF-MIB::ifNumber.0`
 :> $log/$sw
 
 for i in `seq 1 $numports`; do
-	name=`$snmp IF-MIB::ifAlias.$i`
+	name=`$snmp IF-MIB::ifName.$i`
+	alias=`$snmp IF-MIB::ifAlias.$i`
 	if [ "$name" = "No Such Instance currently exists at this OID" ]; then
 		continue
 	fi
@@ -39,6 +40,6 @@ for i in `seq 1 $numports`; do
 	speed=`$snmp IF-MIB::ifSpeed.$i | sed 's/000000//'`
 
 #	echo "## $sw [$name] $iftype $status $descr $speed"
-	echo "$sw $i $speed $status [$name]" | tee -a $log/$sw
+	echo "$sw $i $name $speed $status [$alias]" | tee -a $log/$sw
 done
 
