@@ -25,7 +25,7 @@ if [ ! -z "$1" ] ; then
 fi
 
 #( ls -d $log.last/* | sed 's/^.*\///' ; ./ips ) | sort -u | while read ip
-grep '^\[snmp;sw' /etc/munin/munin.conf | cut -d';' -f2 | sed 's/\]$//' | while read ip
+./sw-names | while read ip
 do
 	echo "## $ip"
 	snmp_walk $ip
