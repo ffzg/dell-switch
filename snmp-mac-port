@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+. ./snmp.conf # get COMMUNITY
+
+log=/dev/shm/snmp-mac-port
+test -d $log || mkdir $log
+
+snmp_walk() {
+	ip=$1
+	snmpwalk -O0sUX -v2c -Cc -c $COMMUNITY $ip BRIDGE-MIB::dot1dTpFdbPort | sed -e "s/^[^:]*:/$ip/" -e 's/:[^:]*: / /' -e 's/\].*: / /' | tee $log/$ip
+}
+
+if [ ! -z "$1" ] ; then
+	while [ ! -z "$1" ] ; do
+		snmp_walk $1
+		shift
+	done
+	exit 0
+fi
+
+#( ls -d $log.last/* | sed 's/^.*\///' ; ./ips ) | sort -u | while read ip
+./sw-names | while read ip
+do
+	echo "## $ip"
+	snmp_walk $ip
+done
