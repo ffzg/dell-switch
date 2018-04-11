@@ -8,11 +8,15 @@ if [ -z "$1" ]; then
 	exit 4
 fi
 
+log=/dev/shm/port-status/
+test -d $log || mkdir $log
+
 sw="$1"
 . ./snmp.conf
 snmp="snmpget -v 2c -c $COMMUNITY -Cf -Ov -OQ $sw"
 
 numports=`$snmp IF-MIB::ifNumber.0`
+:> $log/$sw
 
 for i in `seq 1 $numports`; do
 	name=`$snmp IF-MIB::ifAlias.$i`
@@ -35,6 +39,6 @@ for i in `seq 1 $numports`; do
 	speed=`$snmp IF-MIB::ifSpeed.$i | sed 's/000000//'`
 
 #	echo "## $sw [$name] $iftype $status $descr $speed"
-	echo "$sw $i $speed $status [$name]"
+	echo "$sw $i $speed $status [$name]" | tee -a $log/$sw
 done
 
