@@ -4,7 +4,7 @@
 # see /var/lib/snmp/mibs/ietf/IF-MIB
 
 if [ -z "$1" ]; then
-	echo Usage: "$0" hostname
+	echo Usage: "$0" hostname ifInErrors ifOutErrors ifInDiscards
 	exit 4
 fi
 
@@ -12,6 +12,7 @@ log=/dev/shm/port-status/
 test -d $log || mkdir $log
 
 sw="$1"
+shift # rest of arguments are IfEntry SEQUENCE
 . ./snmp.conf
 snmp="snmpget -v 2c -c $COMMUNITY -Cf -Ov -OQ $sw"
 
@@ -39,7 +40,12 @@ for i in `seq 1 $numports`; do
 	#descr=`$snmp IF-MIB::ifDescr.$i`
 	speed=`$snmp IF-MIB::ifSpeed.$i | sed 's/000000//'`
 
+	extra=""
+	for add in "$@"; do
+		extra="$extra "`$snmp IF-MIB::$add.$i`
+	done
+
 #	echo "## $sw [$name] $iftype $status $descr $speed"
-	echo "$sw $i $name $speed $status [$alias]" | tee -a $log/$sw
+	echo "$sw $i $name $speed $status $iftype$extra [$alias]" | tee -a $log/$sw
 done
 
