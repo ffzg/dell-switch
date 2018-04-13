@@ -38,7 +38,8 @@ for i in `seq 1 $numports`; do
 	fi
 
 	#descr=`$snmp IF-MIB::ifDescr.$i`
-	speed=`$snmp IF-MIB::ifSpeed.$i | sed 's/000000//'`
+	#speed=`$snmp IF-MIB::ifSpeed.$i | sed 's/000000//'`
+	speed=`$snmp IF-MIB::ifHighSpeed.$i`
 
 	extra=""
 	for add in "$@"; do
