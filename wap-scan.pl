@@ -4,6 +4,11 @@ use strict;
 use autodie;
 use Data::Dump qw(dump);
 
+open(my $dot, '>', '/dev/shm/wap-scan.dot');
+print $dot qq|digraph wap {
+
+|;
+
 my $stat;
 
 sub path2hostname {
@@ -53,12 +58,21 @@ foreach my $scan ( glob "/dev/shm/wap/*iw_*_scan" ) {
 
 warn "# stat = ", dump($stat);
 
+sub _dot {
+	my $t = shift;
+	$t =~ s/\W+/_/g;
+	return $t;
+}
 
 foreach my $ap ( keys %$stat ) {
 	foreach my $bss ( keys %{ $stat->{$ap} } ) {
 		if ( exists $mac2hostname->{$bss} ) {
 			my $remote = join(',', keys %{ $mac2hostname->{$bss} } );
 			print "$ap $remote ";
+			my $len = $stat->{$ap}->{$bss}->{signal} || die "no signal in ",dump($stat->{$ap}->{$bss});
+			$len =~ s/ \w+//;
+			$len = abs($len);
+			printf $dot qq| %s -> %s [ len = %d ];\n|, _dot($ap),_dot($remote),$len;
 		} else {
 			print "$ap EXTERNAL ";
 		}
@@ -68,6 +82,9 @@ foreach my $ap ( keys %$stat ) {
 	}
 }
 
+print $dot qq|
+}
+|;
 __END__
 
 ls /dev/shm/wap/*iw_*_scan | while read file ; do
