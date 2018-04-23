@@ -64,6 +64,10 @@ sub _dot {
 	return $t;
 }
 
+my $ap_freq;
+my $freq_count;
+my @edges;
+
 foreach my $ap ( keys %$stat ) {
 	foreach my $bss ( keys %{ $stat->{$ap} } ) {
 		if ( exists $mac2hostname->{$bss} ) {
@@ -72,7 +76,13 @@ foreach my $ap ( keys %$stat ) {
 			my $len = $stat->{$ap}->{$bss}->{signal} || die "no signal in ",dump($stat->{$ap}->{$bss});
 			$len =~ s/ \w+//;
 			$len = abs($len);
-			printf $dot qq| %s -> %s [ len = %d ];\n|, _dot($ap),_dot($remote),$len;
+			my $freq = $stat->{$ap}->{$bss}->{freq};
+			if ( $stat->{$ap}->{$bss}->{SSID} =~ m/eduroam/i && $freq =~ m/^24/ && $len < 90 ) { # FIXME
+				$ap_freq->{ $remote }->{$freq}++;
+				$freq_count->{$freq}++;
+				printf $dot qq| %s -> %s:%s [ len = %d, label = "%s" ];\n|,
+					_dot($ap),_dot($remote),$freq, $len, $len;
+			}
 		} else {
 			print "$ap EXTERNAL ";
 		}
@@ -80,6 +90,14 @@ foreach my $ap ( keys %$stat ) {
 		$info =~ s/[\n\r\s]+/ /gs;
 		print "$bss $info\n";
 	}
+}
+
+warn "# freq_count = ",dump($freq_count);
+warn "# ap_freq = ",dump($ap_freq);
+
+foreach my $node ( keys %$ap_freq ) {
+	print $dot _dot($node), ' [ shape=record, label="', $node, '|{', join('|', map { "<$_>$_ " . $ap_freq->{$node}->{$_} } sort keys %{ $ap_freq->{$node} }), '}" ];', "\n";
+
 }
 
 print $dot qq|
