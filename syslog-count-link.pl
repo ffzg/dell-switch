@@ -14,6 +14,8 @@ use Data::Dump qw(dump);
 use POSIX qw(strftime);
 
 my $timeout = $ENV{TIMEOUT} || 60; # forget switch after sec
+# timeout should be smaller than stp refresh inverval or
+# stp messages will accumulate forever
 
 my $name = $0;
 $name =~ s/.*\/([^\/]+)$/$1/;
@@ -39,7 +41,7 @@ sub print_stats {
 				delete $stat->{$host}->{$port};
 				next;
 			}
-			my $out = sprintf "%-12s %-4s %-2d %s\n", $host, $port, $dt, $stat->{$host}->{$port}->[1];
+			my $out = sprintf "%-12s %-8s %-2d %s\n", $host, $port, $dt, $stat->{$host}->{$port}->[1];
 			print $out;
 			print $fh $out;
 		}
@@ -114,6 +116,11 @@ while(<>) {
 	} elsif ( m/($host_re) \w+: ([\w\-]+) link (\w+)/ ) {
 		my ($host, $port, $state ) = ($1,$2,$3);
 		stat_host_port( $host, $port, substr($state,0,1) );
+
+
+	} elsif ( m/($host_re) TRAPMGR.* %% Spanning Tree Topology Change: (\d+)/ ) {
+		my ( $host, $state ) = ( $1, $2 );
+		stat_host_port( $host, 'STP', $2 );
 
 
 	} elsif ( m'==> /var/log/' ) {
