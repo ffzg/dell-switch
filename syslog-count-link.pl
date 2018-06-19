@@ -60,6 +60,7 @@ while(<>) {
 	chomp;
 	s/[\r\n]+//;
 	next if m/^$/;
+	next if m/%PIX-/; # ignore PIX logs
 
 	## Dell
 	if ( m/(\S+)\s%LINK-[IW]-(\w+):\s*(\w+)/ ) {
