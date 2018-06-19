@@ -41,8 +41,17 @@ sub print_stats {
 	close($fh);
 }
 
+sub reset_stats {
+	if ( -e "$dir/reset" && unlink "$dir/reset" ) {
+		$stat = {};
+		warn "# reset stats\n";
+	}
+}
+
+
 $SIG{HUP} = sub {
 	print_stats();
+	reset_stats;
 };
 
 warn "kill -HUP $$  # to dump stats\n";
@@ -53,16 +62,20 @@ warn "kill -HUP $$  # to dump stats\n";
 }
 
 
+
 my $host_re = '[\w-]+';
 my $port_re = '[\w/]+';
 
 while(<>) {
 	chomp;
 	s/[\r\n]+//;
+
+	reset_stats;
+
 	next if m/^$/;
 	next if m/%PIX-/; # ignore PIX logs
 
-	## Dell
+	## Dell old
 	if ( m/(\S+)\s%LINK-[IW]-(\w+):\s*(\w+)/ ) {
 		my ($host,$state,$port) = ($1,$2,$3);
 		$stat->{$host}->{$port} .= substr($state,0,1);
@@ -73,7 +86,7 @@ while(<>) {
 		$stat->{$host}->{_count}->{$port} += $state =~ m/F/ ? 1 : -1;
 
 
-	## Mikrotik
+	## Dell new
 	} elsif ( m/LINK - (\w+) - Hostname: <($host_re)>, ($port_re)/ ) {
 		my ($state, $host, $port ) = ($1,$2,$3);
 		$stat->{$host}->{$port} .= substr($state,0,1);
@@ -90,10 +103,7 @@ while(<>) {
 		warn "IGNORE: [$_]\n";
 	}
 
-	if ( -e "$dir/reset" && unlink "$dir/reset" ) {
-		$stat = {};
-		warn "# reset stats\n";
-	} elsif ( -e "$dir/dump" ) {
+	if ( -e "$dir/dump" ) {
 		print "### ",strftime("%Y-%m-%d %H:%M:%S",localtime(time)), "\n";
 		print_stats;
 	}
