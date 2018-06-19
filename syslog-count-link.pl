@@ -97,6 +97,13 @@ while(<>) {
 		$stat->{$host}->{_count}->{$port} += $state =~ m/F/ ? 1 : -1;
 
 
+	## Mikrotik
+	} elsif ( m/($host_re) \w+: ([\w\-]+) link (\w+)/ ) {
+		my ($host, $port, $state ) = ($1,$2,$3);
+		$stat->{$host}->{$port} .= substr($state,0,1);
+		$stat->{$host}->{_count}->{$port} += $state =~ m/U/i ? 1 : -1;
+
+
 	} elsif ( m'==> /var/log/' ) {
 		# ignore tail output
 	} else {
