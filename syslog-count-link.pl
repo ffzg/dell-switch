@@ -11,6 +11,7 @@ use strict;
 # sudo tail -f /var/log/switch/sw-[a-z][0-9]*.log | ./syslog-count-link.pl &
 
 use Data::Dump qw(dump);
+use POSIX qw(strftime);
 
 my $name = $0;
 $name =~ s/.*\/([^\/]+)$/$1/;
@@ -86,6 +87,14 @@ while(<>) {
 		# ignore tail output
 	} else {
 		warn "IGNORE: [$_]\n";
+	}
+
+	if ( -e "$dir/reset" && unlink "$dir/reset" ) {
+		$stat = {};
+		warn "# reset stats\n";
+	} elsif ( -e "$dir/dump" ) {
+		print "### ",strftime("%Y-%m-%d %H:%M:%S",localtime(time)), "\n";
+		print_stats;
 	}
 }
 
