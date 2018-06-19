@@ -2,11 +2,27 @@
 use warnings;
 use strict;
 
+# count Dell and Microtik syslog for port and stp events
+
+## report all logs:
+# sudo cat /var/log/switch/sw-[a-z][0-9]*.log | ./syslog-count-link.pl | less -S
+#
+## tail logs and report status on kill -HUP
+# sudo tail -f /var/log/switch/sw-[a-z][0-9]*.log | ./syslog-count-link.pl &
+
 use Data::Dump qw(dump);
+
+my $name = $0;
+$name =~ s/.*\/([^\/]+)$/$1/;
+$name =~ s/\.pl$//;
+my $dir = "/dev/shm/$name";
+mkdir $dir unless -e $dir;
 
 my $stat;
 
 sub print_stats {
+	open(my $fh, '>', "$dir/stats");
+
 	foreach my $host ( sort keys %$stat ) {
 		foreach my $port ( sort {
 			my $a1 = $a; $a1 =~ s/\D+//g;
@@ -15,9 +31,13 @@ sub print_stats {
 			$a1 <=> $b1;
 		} keys %{ $stat->{$host} } ) {
 			next if $port =~ m/^_/;
-			printf "%s %s:%s %d\n", $host, $port, $stat->{$host}->{$port}, $stat->{$host}->{_count}->{$port};
+			my $out = sprintf "%s %s:%s %d\n", $host, $port, $stat->{$host}->{$port}, $stat->{$host}->{_count}->{$port};
+			print $out;
+			print $fh $out;
 		}
 	}
+
+	close($fh);
 }
 
 $SIG{HUP} = sub {
@@ -25,6 +45,12 @@ $SIG{HUP} = sub {
 };
 
 warn "kill -HUP $$  # to dump stats\n";
+{
+	open(my $fh, '>', "$dir/pid");
+	print $fh $$;
+	close($fh);
+}
+
 
 my $host_re = '[\w-]+';
 my $port_re = '[\w/]+';
