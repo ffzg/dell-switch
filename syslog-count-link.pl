@@ -6,11 +6,33 @@ use Data::Dump qw(dump);
 
 my $stat;
 
+sub print_stats {
+	foreach my $host ( sort keys %$stat ) {
+		foreach my $port ( sort {
+			my $a1 = $a; $a1 =~ s/\D+//g;
+			my $b1 = $b; $b1 =~ s/\D+//g;
+			no warnings;
+			$a1 <=> $b1;
+		} keys %{ $stat->{$host} } ) {
+			next if $port =~ m/^_/;
+			printf "%s %s:%s %d\n", $host, $port, $stat->{$host}->{$port}, $stat->{$host}->{_count}->{$port};
+		}
+	}
+}
+
+$SIG{HUP} = sub {
+	print_stats();
+};
+
+warn "kill -HUP $$  # to dump stats\n";
+
 my $host_re = '[\w-]+';
 my $port_re = '[\w/]+';
 
 while(<>) {
 	chomp;
+	s/[\r\n]+//;
+	next if m/^$/;
 
 	## Dell
 	if ( m/(\S+)\s%LINK-[IW]-(\w+):\s*(\w+)/ ) {
@@ -34,20 +56,16 @@ while(<>) {
 		$stat->{$host}->{_count}->{$port} += $state =~ m/F/ ? 1 : -1;
 
 
+	} elsif ( m'==> /var/log/' ) {
+		# ignore tail output
 	} else {
 		warn "IGNORE: [$_]\n";
 	}
 }
 
-warn "# stat = ", dump($stat);
 
-foreach my $host ( sort keys %$stat ) {
-	foreach my $port ( sort {
-		my $a1 = $a; $a1 =~ s/\D+//g;
-		my $b1 = $b; $b1 =~ s/\D+//g;
-		$a1 <=> $b1;
-	} keys %{ $stat->{$host} } ) {
-		next if $port =~ m/^_/;
-		printf "%s %s:%s %d\n", $host, $port, $stat->{$host}->{$port}, $stat->{$host}->{_count}->{$port};
-	}
-}
+
+warn "# stat = ", dump($stat);
+print_stats;
+
+
