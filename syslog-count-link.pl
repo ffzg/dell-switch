@@ -98,9 +98,9 @@ while(<>) {
 	if ( m/(\S+)\s%LINK-[IW]-(\w+):\s*(\w+)/ ) {
 		my ($host,$state,$port) = ($1,$2,$3);
 		stat_host_port( $host, $port, substr($state,0,1) );
-	} elsif ( m/(\S+)\s%STP-W-PORTSTATUS:\s([\w\/]+): STP status (\w+)/ ) {
-		my ($host,$port,$state) = ($1,$2,$3);
-		stat_host_port( $host, $port, '-' );
+	} elsif ( m/(\S+)\s%STP-W-PORTSTATUS:\s([\w\/]+)(?: of instance \d+)?: STP status (\w+)/ ) {
+		my ($host,$port,$state) = ($1,$2,substr($3,0,1) );
+		stat_host_port( $host, $port, $state =~ m/f/i ? '-' : $state );
 
 
 	## Dell new
