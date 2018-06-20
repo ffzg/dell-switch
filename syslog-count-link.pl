@@ -131,7 +131,7 @@ while(<>) {
 		next;
 	}
 
-	if ( -e "$dir/dump" ) {
+	if ( -e "$dir/dump" || $ENV{DUMP} ) {
 		print "### ",strftime("%Y-%m-%d %H:%M:%S",localtime(time)), "\n";
 		print_stats;
 	}
