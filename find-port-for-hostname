@@ -4,10 +4,12 @@ host=$1
 
 test -z "$host" && echo "Usage: $0 hostname" && exit 1
 
-sudo id
+sudo id >/dev/null
 
-ping -q -c 1 $host
-mac=`sudo arp -a | grep $host | cut -d' ' -f4 | sort -u`
-grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/port.$host | egrep -v '(23|24|48|49)$' # remove trunk ports
+ping -c 1 $host | grep from > /dev/shm/port.$host.ping
+ip=`cat /dev/shm/port.$host.ping | cut -d' ' -f5 | tr -d '()':`
+host=`cat /dev/shm/port.$host.ping | cut -d' ' -f4`
+mac=`sudo arp -a -n | grep "($ip)" | cut -d' ' -f4 | sort -u`
+grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/port.$host.switch | cut -d: -f2- | egrep -v '(23|24|48|49)$' # remove trunk ports
 
-echo "# "`cat /dev/shm/port.$host | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches have $host mac $mac"
+echo "# $host $ip $mac on "`cat /dev/shm/port.$host.switch | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches"
