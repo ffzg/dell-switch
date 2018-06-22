@@ -13,6 +13,12 @@ ping -c 1 $host | grep from > /dev/shm/port.$host.ping
 ip=`cat /dev/shm/port.$host.ping | cut -d' ' -f5 | tr -d '():'`
 host=`cat /dev/shm/port.$host.ping | cut -d' ' -f4`
 mac=`sudo arp -a -n | grep "($ip)" | cut -d' ' -f4 | sort -u`
+if [ -z "$mac" ] ; then
+	bro=`./bro-conn-ip-vlan-mac.sh $ip`
+	echo "# bro $bro"
+	mac=`echo $bro | cut -d' ' -f3`
+	test -z "$mac" && exit 1
+fi
 grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/port.$host.switch | grep --file /dev/shm/trunk.regex -v | cut -d: -f2-
 
 echo "# $host $ip $mac on "`cat /dev/shm/port.$host.switch | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches"
