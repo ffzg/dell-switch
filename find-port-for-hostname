@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+host=$1
+
+test -z "$host" && echo "Usage: $0 hostname" && exit 1
+
+sudo id
+
+ping -q -c 1 $host
+mac=`sudo arp -a | grep $host | cut -d' ' -f4 | sort -u`
+grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/port.$host | egrep -v '(23|24|48|49)$' # remove trunk ports
+
+echo "# "`cat /dev/shm/port.$host | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches have $host mac $mac"
