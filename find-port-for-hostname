@@ -10,8 +10,13 @@ sudo id >/dev/null
 cat /dev/shm/snmp-mac-port/* | cut -d' ' -f1,4 | sort | uniq -c | awk '{ if ( $1 > 10 && $3 <= 49 ) print "/"$2":"$2 " .* " $3 }' > /dev/shm/trunk.regex
 
 ping -c 1 $host | grep from > /dev/shm/port.$host.ping
-ip=`cat /dev/shm/port.$host.ping | cut -d' ' -f5 | tr -d '():'`
-host=`cat /dev/shm/port.$host.ping | cut -d' ' -f4`
+# did we got resolved IP address?
+if grep '(' /dev/shm/port.$host.ping >/dev/null ; then
+	ip=`cat /dev/shm/port.$host.ping | cut -d' ' -f5 | tr -d '():'`
+	host=`cat /dev/shm/port.$host.ping | cut -d' ' -f4`
+else
+	ip=`cat /dev/shm/port.$host.ping | cut -d' ' -f4 | tr -d ':'`
+fi
 mac=`sudo arp -a -n | grep "($ip)" | cut -d' ' -f4 | sort -u`
 if [ -z "$mac" ] ; then
 	bro=`./bro-conn-ip-vlan-mac.sh $ip`
