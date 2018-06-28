@@ -17,6 +17,7 @@ require 'config.pl';
 #$Net::OpenSSH::debug = ~0;
 
 my $ip = shift @ARGV || die "usage: $0 IP command[ command ...]\n";
+$ip = $1 if `host $ip` =~ m/has address (\S+)/;
 my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
