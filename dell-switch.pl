@@ -22,7 +22,7 @@ my @commands = @ARGV;
 @commands = <DATA> unless @commands;
 
 warn "\n## ssh $ip\n";
-my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd);
+my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd, default_ssh_opts => [-o => "StrictHostKeyChecking=no"]);
 my ($pty ,$pid) = $ssh->open2pty();
 if ( ! $pty ) {
 	warn "ERROR: can't connect to $ip, skipping";
@@ -33,12 +33,12 @@ my $buff;
 
 sub send_pty {
 	my $string = shift;
-	sleep 0.1; # we really need to wait for slow PowerConnect 5324
+	sleep 0.05; # we really need to wait for slow PowerConnect 5324
 	foreach (split //, $string) {
 		print STDERR "[$_]" if $debug;
 		syswrite $pty, $_;
 		#$pty->flush;
-		sleep 0.05;
+		sleep 0.01;
 
 		sysread $pty, my $echo, 1;
 		print STDERR $echo;
