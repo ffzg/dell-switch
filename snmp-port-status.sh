@@ -53,3 +53,7 @@ for PORT in `seq 1 $numports`; do
 	echo "$sw $PORT "`$snmp IF-MIB::ifName.$PORT IF-MIB::ifHighSpeed.$PORT IF-MIB::ifOperStatus.$PORT IF-MIB::ifType.$PORT IF-MIB::ifAlias.$PORT` | grep -v 'No Such Instance currently exists at this OID' | sed 's/\(ethernetCsmacd\) \(..*\)$/\1 [\2]/' | tee -a $log/$sw
 done
 
+ports_changed=`cd $log && git diff $sw | grep '^-' | awk '{ print $3 }' | tr '\n' ' '`
+if [ ! -z "$ports_changed" ] ; then
+	cd $log && git commit -m "$sw : $ports_changed" $log/$sw
+fi
