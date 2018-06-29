@@ -2,5 +2,5 @@ echo "All fans breakdown by status:"
 grep Fan log/*system* | cut -d: -f3 | sort | uniq -c
 echo
 echo "Failing fans:"
-grep -B 5 'NOT' log/*system* | egrep '(NOT|Type)'
+grep -B 15 'NOT' log/*system* | egrep '(NOT|Description|Type)'
 
