@@ -27,3 +27,22 @@ Backup switch configuration to tftp server:
 To use snmp* utils, create snmp.conf with:
 
 COMMUNITY=my-comminity-or-public
+
+
+# Find mac address on network
+
+collect all mac addresses using snmp
+
+dpavlin@black:~/dell-switch$ ./sw-mac-port.sh 
+
+find interesting mac
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:1e:8c:0a:49:3c # eeepy eth0
+sw-e300 1 00:1e:8c:0a:49:3c 23
+sw-e300-2 1 00:1e:8c:0a:49:3c 21
+# mac 00:1e:8c:0a:49:3c on 41 switches
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:80:c8:37:6d:76 # eeepy eth3
+sw-e300 1 00:80:c8:37:6d:76 17
+# mac 00:80:c8:37:6d:76 on 41 switches
+ 
