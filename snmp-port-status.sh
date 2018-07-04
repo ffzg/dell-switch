@@ -18,6 +18,8 @@ shift # rest of arguments are IfEntry SEQUENCE
 extra=$*
 snmpwalk="snmpwalk -Oqs -v2c -Cc -c $COMMUNITY $sw"
 
+fping $sw 2>>/dev/shm/dead
+
 :> $log/$sw
 
 for oid in ifName ifHighSpeed ifOperStatus $extra ifType ifAlias

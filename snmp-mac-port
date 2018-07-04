@@ -7,6 +7,8 @@ test -d $log || mkdir $log
 
 snmp_walk() {
 	ip=$1
+	fping $ip 2>>/dev/shm/dead
+
 	# Q-BRIDGE-MIB dot1qFdbTable
 	snmpbulkwalk -O0sUX -v2c -Cc -c $COMMUNITY $ip 1.3.6.1.2.1.17.7.1.2.2.1.2 | sed -e 's/.*7\.1\.2\.2\.[0-9]\.[0-9]\.//' -e 's/ = [^:]*: / /' -e 's/\./ /g' | awk -v name=$ip '{ printf "%s %d %02x:%02x:%02x:%02x:%02x:%02x %d\n", name, $1, $2,$3,$4,$5,$6,$7, $8 }' | tee $log/$ip
 	num=`cat $log/$ip | wc -l`
