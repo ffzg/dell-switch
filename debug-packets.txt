@@ -61,12 +61,12 @@ sw-a200-s   1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  e0 X  X  X  X 
 sw-a200-s   4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
 sw-a200-s   5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
 sw-a200-s   20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
------------ ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16{17}18 19 20 21 22 23 24
 sw-e300     1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  .  X  X  X  X  .  X  X 
 sw-e300     4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  t0 .  .  .  .  X  .  X t42 eth0
 sw-e300     5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  X 
 sw-e300     20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X  X 
------------ ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20{21}22 23 24
 sw-e300-2   1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  t2 X  X  X th42 eth2
 sw-e300-2   20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X 
 
@@ -108,4 +108,35 @@ Capturing on 'eth2'
    40 0.583004074 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
 
 those where also visible as Unknown frame on eeepy on same port.
+
+
+
+# change switch port vlan
+
+dpavlin@black:~/dell-switch$ ssh sw-e300
+
+
+User Name:admin
+Password:********
+
+sw-e300# configure
+sw-e300(config)# interface ethernet g17
+sw-e300(config-if)# switchport access vlan 1
+sw-e300(config-if)# exit
+sw-e300(config)# exit
+sw-e300# exit
+Connection to sw-e300 closed.
+
+
+
+# update vlan table
+
+dpavlin@black:~/dell-switch$ ./dell-switch.pl sw-e300 'show vlan'
+
+dpavlin@black:~/dell-switch$ ./vlan-ports.pl ./log/*sw-e300_*vlan* 2>/dev/null
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+sw-e300     1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  .  X  X  X  X  .  X  X 
+sw-e300     4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  .  .  .  X  .  X 
+sw-e300     5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  X 
+sw-e300     20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X  X 
 
