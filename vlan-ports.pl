@@ -48,7 +48,7 @@ warn dump($stat),$/;
 
 foreach my $sw ( sort keys %$stat ) {
 	my @ports = sort { $a <=> $b } keys %{ $stat->{$sw}->{port_vlan} };
-	warn "# ports = ",dump( \@ports );
+	#warn "# ports = ",dump( \@ports );
 	printf( "%-11s %-5s %s\n", ('-' x 11), ('-' x 5), join(' ', map { sprintf("%-2s", $_) } ( 1 .. $ports[-1] )) );
 	foreach my $vlan ( sort { $a <=> $b } keys %{ $stat->{$sw}->{vlan_port} } ) {
 		my @p = ( '.' ) x ( $ports[-1] + 1 );
