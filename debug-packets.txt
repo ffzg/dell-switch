@@ -1,0 +1,111 @@
+# figure out interface mac address
+
+t42:/home/dpavlin# ip link show eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+    link/ether 00:0d:60:79:26:67 brd ff:ff:ff:ff:ff:ff
+t42:/home/dpavlin# ip link show eth2
+4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether 00:e0:4c:39:00:78 brd ff:ff:ff:ff:ff:ff
+
+
+
+# make sure that mac tables in switches are populated (ping something available in that vlan)
+
+t42:/home/dpavlin# arping -S 10.20.30.77 -i eth0 10.4.0.1
+t42:/home/dpavlin# arping -S 10.20.30.78 -i eth2 193.198.212.1
+
+
+
+# pull new bridge tables from switches
+
+dpavlin@black:~/dell-switch$ ./sw-mac-port.sh # pull all switches
+
+or you can just pull few interesting ones which is faster:
+
+dpavlin@black:~/dell-switch$ ./snmp-mac-port sw-e300
+dpavlin@black:~/dell-switch$ ./snmp-mac-port sw-e300-2
+
+
+
+# find switch and port for mac
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:0d:60:79:26:67 # t42 eth0
+sw-e300 4 00:0d:60:79:26:67 17
+# mac 00:0d:60:79:26:67 on 19 switches
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:e0:4c:39:00:78 # t42 eth2
+sw-e300 1 00:e0:4c:39:00:78 23
+sw-e300-2 1 00:e0:4c:39:00:78 21
+# mac 00:e0:4c:39:00:78 on 42 switches
+
+
+
+# repeat all that again for eeepy
+
+dpavlin@eeepy:~$ ip link show eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+    link/ether 00:1e:8c:0a:49:3c brd ff:ff:ff:ff:ff:ff
+
+dpavlin@eeepy:~$ sudo arping -i eth0 -S 10.20.30.55 193.198.212.1
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:1e:8c:0a:49:3c # eeepy eth0
+sw-a200-s 1 00:1e:8c:0a:49:3c 17
+# mac 00:1e:8c:0a:49:3c on 43 switches
+
+
+# figure out which vlans are on which switches
+
+dpavlin@black:~/dell-switch$ ./vlan-ports.pl ./log/*sw-{e300,a200-s}*vlan* 2>/dev/null
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16{17}18 19 20 21 22 23 24
+sw-a200-s   1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  e0 X  X  X  X  X  .  X eeepy eth0
+sw-a200-s   4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
+sw-a200-s   5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
+sw-a200-s   20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X 
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+sw-e300     1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  .  X  X  X  X  .  X  X 
+sw-e300     4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  t0 .  .  .  .  X  .  X t42 eth0
+sw-e300     5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  X 
+sw-e300     20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X  X 
+----------- ----- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+sw-e300-2   1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  t2 X  X  X th42 eth2
+sw-e300-2   20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X 
+
+
+# wierd frames
+
+eeepy:/home/dpavlin# uname -a
+Linux eeepy 3.16.0-4-586 #1 Debian 3.16.51-2 (2017-12-03) i686 GNU/Linux
+
+eeepy:/home/dpavlin# tshark -i eth0 | grep 'frame'
+Capturing on 'eth0'
+  1   0.000000     00.00.00 -> 80.00.00     FC 86 Unknown frame
+  2   0.044321     00.00.00 -> 80.00.00     FC 86 Unknown frame
+  4   0.088655     00.00.00 -> 80.00.00     FC 86 Unknown frame
+  6   0.132972     00.00.00 -> 80.00.00     FC 86 Unknown frame
+ 11   0.177300     00.00.00 -> 80.00.00     FC 86 Unknown frame
+ 14   0.221633     00.00.00 -> 80.00.00     FC 86 Unknown frame
+
+different wired packets on different machine with newer kernel:
+
+t42:/home/dpavlin# uname -a
+Linux t42 4.9.0-6-686 #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07) i686 GNU/Linux
+
+t42:/home/dpavlin# tshark -i eth2 | grep Ethernet
+Capturing on 'eth2'
+    2 0.006734442 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+    5 0.051063305 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+    9 0.095479055 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   11 0.139803448 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   17 0.184132590 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   20 0.228461174 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   22 0.273977679 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   25 0.317120297 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   30 0.361353892 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   33 0.405682196 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   34 0.450103254 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   35 0.494430162 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   37 0.538770200 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+   40 0.583004074 fe:80:00:00:00:00 → e5:37:7f:e7:f0:fa 0x0000 86 Ethernet II
+
+those where also visible as Unknown frame on eeepy on same port.
+
