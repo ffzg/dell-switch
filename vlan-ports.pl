@@ -27,12 +27,14 @@ foreach my $log ( @logs ) {
 
 			while ( $ports =~ s/(\d+)-(\d+)// ) {
 				foreach my $port ( $1 .. $2 ) {
-					push @{ $stat->{$sw}->{$port} }, $vlan;
+					push @{ $stat->{$sw}->{port_vlan}->{$port} }, $vlan;
+					push @{ $stat->{$sw}->{vlan_port}->{$vlan} }, $port;
 				}
 			}
 			while ( $ports =~ s/(\d+)// ) {
 				my $port = $1;
-				push @{ $stat->{$sw}->{$port} }, $vlan;
+				push @{ $stat->{$sw}->{port_vlan}->{$port} }, $vlan;
+				push @{ $stat->{$sw}->{vlan_port}->{$vlan} }, $port;
 			}
 			#warn "# ports left:[$ports] stat = ",dump($stat);
 		} else {
@@ -41,5 +43,21 @@ foreach my $log ( @logs ) {
 	}
 }
 
-print dump($stat);
+warn dump($stat),$/;
+
+
+foreach my $sw ( sort keys %$stat ) {
+	my @ports = sort { $a <=> $b } keys %{ $stat->{$sw}->{port_vlan} };
+	warn "# ports = ",dump( \@ports );
+	printf( "%-11s %-5s %s\n", ('-' x 11), ('-' x 5), join(' ', map { sprintf("%-2s", $_) } ( 1 .. $ports[-1] )) );
+	foreach my $vlan ( sort { $a <=> $b } keys %{ $stat->{$sw}->{vlan_port} } ) {
+		my @p = ( '.' ) x ( $ports[-1] + 1 );
+		foreach my $port ( @{ $stat->{$sw}->{vlan_port}->{$vlan} } ) {
+			$p[$port] = 'X';
+		}
+		shift @p; # skip port 0
+		#warn "# $sw $vlan p = ",dump( \@p );
+		printf( "%-11s %-5d %s\n", $sw, $vlan, join(' ', map { sprintf("%-2s", $_) } @p) );
+	}
+}
 
