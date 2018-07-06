@@ -1,0 +1,3 @@
+#!/bin/sh -xe
+
+NO_LOG=1 ./dell-switch.pl $1 'configure' "interface ethernet g$2" "switchport access vlan $3" 'exit' 'exit'
