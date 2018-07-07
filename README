@@ -45,4 +45,12 @@ sw-e300-2 1 00:1e:8c:0a:49:3c 21
 dpavlin@black:~/dell-switch$ ./find-port-for-mac 00:80:c8:37:6d:76 # eeepy eth3
 sw-e300 1 00:80:c8:37:6d:76 17
 # mac 00:80:c8:37:6d:76 on 41 switches
- 
+
+
+
+# switch configuration helpers
+
+ssh-switch-port-vlan sw port vlan
+ssh-switch-port-shutdown sw port [no]
+ssh-snmp-server-rw sw
+
