@@ -1,3 +1,29 @@
+# configure mibs on local machine
+
+apt-get install snmp-mibs-downloader
+
+## configure mib
+
+dpavlin@black:~$ cat /etc/snmp/snmp.conf 
+# As the snmp packages come without MIB files due to license reasons, loading
+# of MIBs is disabled by default. If you added the MIBs you can reenable
+# loading them by commenting out the following line.
+#mibs :
+
+
+root@black:/etc/snmp-mibs-downloader# download-mibs
+
+# Dell MIB
+
+dpavlin@black:~/dell-switch/snmp-mib$ wget http://ftp.us.dell.com/sysman/dcpemibs.exe
+dpavlin@black:~/dell-switch/snmp-mib$ unzip dcpemibs.exe 
+dpavlin@black:~/dell-switch/snmp-mib$ sudo cp -rv DCPEMIBs /var/lib/snmp/mibs/
+
+test
+
+dpavlin@black:~/dell-switch/snmp-mib$ snmpwalk -v2c -Cc -c $COMMUNITY sw-e300-2
+
+
 # configure SNMP on switches
 
 
