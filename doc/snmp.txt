@@ -1,0 +1,10 @@
+# configure SNMP on switches
+
+
+snmp-server host 10.20.0.216 mypassword
+
+snmp-server v3-host 10.20.0.216 mypassword traps noauth
+
+snmp-server community mypassword rw 10.20.0.216 view Default
+
+
