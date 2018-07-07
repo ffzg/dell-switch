@@ -109,6 +109,7 @@ Capturing on 'eth2'
 
 those where also visible as Unknown frame on eeepy on same port.
 
+The problem seems to be version of wireshark which in old one shows different frames.
 
 
 # change switch port vlan
@@ -139,4 +140,23 @@ sw-e300     1     X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  .  X  X  X  X 
 sw-e300     4     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  .  .  .  X  .  X 
 sw-e300     5     .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  .  X 
 sw-e300     20    .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X  X  X 
+
+
+# find port for mac address
+
+dpavlin@black:~/dell-switch$ ./find-port-for-mac fe:80:00:00:00:00
+sw-b200-2 1 fe:80:00:00:00:00 2
+sw-b200 1 fe:80:00:00:00:00 23
+# mac fe:80:00:00:00:00 on 43 switches
+
+
+# toggle port state
+
+dpavlin@black:~/dell-switch$ ./snmp-port-toggle.sh sw-b200-2 2
+sw-b200-2 2 gi1/0/2 fe:80 flood promet ethernetCsmacd up 100
+# Press ENTER to toggle port which is now up
+IF-MIB::ifAdminStatus.2 = INTEGER: down(2)
+# wait for port status change from up
+Bad operator (INTEGER): At line 73 in /usr/share/snmp/mibs/ietf/SNMPv2-PDU
+sw-b200-2 2 gi1/0/2 fe:80 flood promet ethernetCsmacd down 1000
 
