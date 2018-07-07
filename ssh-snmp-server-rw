@@ -1,0 +1,4 @@
+#!/bin/sh -xe
+
+. ./snmp.conf
+NO_LOG=1 ./dell-switch.pl $1 'configure' "snmp-server community $COMMUNITY rw 10.20.0.216 view Default" 'exit'
