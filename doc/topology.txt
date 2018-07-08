@@ -1,0 +1,13 @@
+# Topology discovery
+
+dpavlin@black:/dev/shm/snmpbulkwalk$ ls * | xargs -i sh -cx 'grep ifPhysAddress {} | sed "s/.*STRING: //" > /tmp/{}.ifPhysAddress'
+
+dpavlin@black:/dev/shm/snmpbulkwalk$ grep -f /tmp/sw-b000.ifPhysAddress sw-dpc                            Q-BRIDGE-MIB::dot1qTpFdbPort[20][STRING: 0:11:43:9a:5e:b8] = INTEGER: 2
+Q-BRIDGE-MIB::dot1qTpFdbStatus[20][STRING: 0:11:43:9a:5e:b8] = INTEGER: learned(3)
+dpavlin@black:/dev/shm/snmpbulkwalk$ grep -f /tmp/sw-b100.ifPhysAddress sw-dpc
+Q-BRIDGE-MIB::dot1qTpFdbPort[20][STRING: 0:11:43:9a:5e:58] = INTEGER: 5
+Q-BRIDGE-MIB::dot1qTpFdbStatus[20][STRING: 0:11:43:9a:5e:58] = INTEGER: learned(3)
+dpavlin@black:/dev/shm/snmpbulkwalk$ grep -f /tmp/sw-b200.ifPhysAddress sw-dpc
+Q-BRIDGE-MIB::dot1qTpFdbPort[20][STRING: 0:11:43:9a:5c:90] = INTEGER: 4
+Q-BRIDGE-MIB::dot1qTpFdbStatus[20][STRING: 0:11:43:9a:5c:90] = INTEGER: learned(3)
+
