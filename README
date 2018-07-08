@@ -3,6 +3,40 @@
 dpavlin@black:~/dell-switch$ ./sw-running-config.sh sw-dpc
 
 
+# /dev/shm/port-status
+
+Collect information about port status using snmp
+
+dpavlin@black:~/dell-switch$ ./snmp-port-status.sh sw-core # single switch
+
+dpavlin@black:~/dell-switch$ ./sw-port-status.sh # all switches
+
+This will populate /dev/shm/port-status/ and manage changes in git
+
+You can grep for ports on switches since format is "switch port ...."
+
+dpavlin@black:~/dell-switch$ egrep ' (15|22) ' /dev/shm/port-status/sw-dpc 
+sw-dpc 15 g15 1000 up ethernetCsmacd [sw-baraka]
+sw-dpc 22 g22 100 up ethernetCsmacd [PIX-eth1]
+
+You can also grep only for sw-name and get both uplink port (if in description)
+and ports from switch:
+
+dpavlin@black:/dev/shm/port-status$ egrep sw-baraka * | head
+sw-a200:sw-a200 22 g22 1000 up ethernetCsmacd [sw-baraka]
+sw-baraka:sw-baraka 1 g1 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 2 g2 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 3 g3 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 4 g4 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 5 g5 10 up ethernetCsmacd
+sw-baraka:sw-baraka 6 g6 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 7 g7 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 8 g8 1000 down ethernetCsmacd
+sw-baraka:sw-baraka 9 g9 1000 down ethernetCsmacd
+
+
+
+
 
 # ssh auto-login script for Dell switches
 
