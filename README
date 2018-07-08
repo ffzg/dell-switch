@@ -1,3 +1,11 @@
+# manage Dell switch running-config in git
+
+dpavlin@black:~/dell-switch$ ./sw-running-config.sh sw-dpc
+
+
+
+# ssh auto-login script for Dell switches
+
 ./ips | xargs -i ./dell-switch.pl {} "show bridge address"
 
 ./ips | xargs -i ./dell-switch.pl {} "show interfaces status"
