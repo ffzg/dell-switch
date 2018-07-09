@@ -14,5 +14,5 @@ if [ ! -z "$2" ] ; then
 fi
 
 ( test ! -z "$1" && echo $1 || ./sw-names ) | xargs -i sh -c \
-"snmpbulkwalk -OX -v2c -Cc -c $COMMUNITY {} $2 | tee $dir/$ext{} && cd $dir && git add $dir/$ext{} && git commit -m $2 $dir/$ext{}" #| parallel 
+"snmpbulkwalk -OX -v2c -Cc -c $COMMUNITY {} $2 | tee $dir/$ext{} && test -z "$ext" && cd $dir && git add $dir/$ext{} && git commit -m $2 $dir/$ext{}" #| parallel 
 
