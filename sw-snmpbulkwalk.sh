@@ -1,4 +1,18 @@
-mkdir /dev/shm/snmpbulkwalk/
+#!/bin/sh -e
 
-./sw-names | xargs -i echo "snmpbulkwalk -OX -v2c -Cc -c $COMMUNITY {} | tee /dev/shm/snmpbulkwalk/{}" | parallel 
+# Usage: $0 [sw [oid]]
+
+dir=/dev/shm/snmpbulkwalk/
+test ! -d $dir && mkdir $dir
+
+. ./snmp.conf
+
+ext=""
+if [ ! -z "$2" ] ; then
+	ext=".$2/"
+	test ! -d "$dir/$ext" && mkdir "$dir/$ext"
+fi
+
+( test ! -z "$1" && echo $1 || ./sw-names ) | xargs -i sh -c \
+"snmpbulkwalk -OX -v2c -Cc -c $COMMUNITY {} $2 | tee $dir/$ext{} && cd $dir && git add $dir/$ext{} && git commit -m $2 $dir/$ext{}" #| parallel 
 
