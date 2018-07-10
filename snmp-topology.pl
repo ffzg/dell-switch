@@ -56,6 +56,19 @@ foreach my $mac ( keys %{ $stat->{_mac2sw} } ) {
 	print $fh macfmt($mac), " ", $stat->{_mac2sw}->{$mac}, "\n";
 };
 
+# XXX inject additional mac in filter to include wap devices
+my $mac_include = '/dev/shm/mac.wap';
+if ( -e $mac_include ) {
+	open(my $fh, '<', $mac_include);
+	while(<$fh>) {
+		chomp;
+		my ($mac,$host) = split(/\s+/,$_,2);
+		$mac =~ s/^0//; $mac =~ s/:0/:/g; # mungle mac to snmp format without leading zeros
+		$stat->{_mac2sw}->{$mac} = $host;
+	}
+	warn "# $mac_include added to _mac2sw = ",dump($stat->{_mac2sw}),$/;
+}
+
 my $s = $stat->{_sw_mac_port_vlan};
 foreach my $sw ( keys %$s ) {
 	foreach my $mac ( keys %{ $s->{$sw} } ) {
@@ -109,6 +122,7 @@ foreach my $sw ( sort keys %$s ) {
 	foreach my $port ( @ports ) {
 		warn "## $sw $port => ",join(' ', @{$s->{$sw}->{$port}}),$/;
 	}
+
 	if ( $#ports == 0 ) {
 		my $port = $ports[0];
 		#print "$sw $port TRUNK\n";
@@ -116,8 +130,10 @@ foreach my $sw ( sort keys %$s ) {
 		#warn "## _trunk = ",dump( $stat->{_trunk} ).$/;
 
 		my @visible = uniq_visible( @{ $s->{$sw}->{$port} } );
-		to_later( $sw, $port, @visible );
-		next;
+		if ( $#visible > 0 ) {
+			to_later( $sw, $port, @visible );
+			next;
+		}
 	}
 
 	foreach my $port ( @ports ) {
@@ -140,9 +156,17 @@ foreach my $sw ( sort keys %$s ) {
 }
 
 warn "NEXT later = ",dump($later),$/;
-$s = $later;
+#$s = $later;
 
-my $d = dump($later);
+# remove all found
+$s = {};
+foreach my $sw ( keys %$later ) {
+	foreach my $port ( keys %{ $later->{$sw} } ) {
+		$s->{$sw}->{$port} = [ uniq_visible( @{ $later->{$sw}->{$port} } ) ];
+	}
+}
+
+my $d = dump($s);
 if ( $d eq $last_later ) {
 	warn "FIXME later didn't change, last\n";
 	last;
@@ -160,13 +184,13 @@ warn "FINAL _trunk = ",dump( $stat->{_trunk} ),$/;
 my $node;
 my @edges;
 
-my $ports = $ENV{PORTS} || 0; # FIXME
+my $ports = $ENV{PORTS} || 1; # FIXME
 
 
 open(my $dot, '>', '/tmp/snmp-topology.dot');
 
 my $shape = $ports ? 'record' : 'ellipse';
-my $rankdir = $ports ? 'TB' : 'LR';
+my $rankdir = 'LR'; #$ports ? 'TB' : 'LR';
 print $dot <<"__DOT__";
 digraph topology {
 graph [ rankdir = $rankdir ]
@@ -191,10 +215,10 @@ warn "# node = ",dump($node);
 if ( $ports ) {
 	foreach my $n ( keys %$node ) {
 		my @port_sw =
-			sort { $a->[0] <=> $b->[1] }
+			sort { $a->[0] <=> $b->[0] }
 			@{ $node->{$n} };
-warn "XXX $n ",dump( \@port_sw );
-		print $dot qq!"$n" [ label="*$n*|! . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
+#warn "XXX $n ",dump( \@port_sw );
+		print $dot qq!"$n" [ label="!.uc($n).'|' . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
 	}
 }
 
