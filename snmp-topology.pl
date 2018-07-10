@@ -5,7 +5,7 @@ use autodie;
 
 use Data::Dump qw(dump);
 
-my $dir="/dev/shm/snmpbulkwalk";
+my $dir="/dev/shm/snmp-topology";
 
 my $stat;
 
@@ -59,6 +59,7 @@ foreach my $mac ( keys %{ $stat->{_mac2sw} } ) {
 # XXX inject additional mac in filter to include wap devices
 my $mac_include = '/dev/shm/mac.wap';
 if ( -e $mac_include ) {
+	my $count = 0;
 	open(my $fh, '<', $mac_include);
 	while(<$fh>) {
 		chomp;
@@ -66,7 +67,8 @@ if ( -e $mac_include ) {
 		$mac =~ s/^0//; $mac =~ s/:0/:/g; # mungle mac to snmp format without leading zeros
 		$stat->{_mac2sw}->{$mac} = $host;
 	}
-	warn "# $mac_include added to _mac2sw = ",dump($stat->{_mac2sw}),$/;
+#	warn "# $mac_include added to _mac2sw = ",dump($stat->{_mac2sw}),$/;
+	warn "# $mac_include added to _mac2sw $count hosts\n";
 }
 
 my $s = $stat->{_sw_mac_port_vlan};
@@ -106,7 +108,7 @@ sub to_later {
 	my $sw = shift;
 	my $port = shift;
 	my @visible = uniq_visible(@_);
-	warn "# to_later $sw $port visible = ", $#visible + 1, "\n";
+	warn "# to_later $sw $port visible = ",dump( \@visible ),"\n";
 	$later->{$sw}->{$port} = [ @visible ];
 	return @visible;
 }
@@ -130,10 +132,8 @@ foreach my $sw ( sort keys %$s ) {
 		#warn "## _trunk = ",dump( $stat->{_trunk} ).$/;
 
 		my @visible = uniq_visible( @{ $s->{$sw}->{$port} } );
-		if ( $#visible > 0 ) {
-			to_later( $sw, $port, @visible );
-			next;
-		}
+		to_later( $sw, $port, @visible );
+		next;
 	}
 
 	foreach my $port ( @ports ) {
@@ -158,18 +158,53 @@ foreach my $sw ( sort keys %$s ) {
 warn "NEXT later = ",dump($later),$/;
 #$s = $later;
 
+
+my @single_sw_port_visible;
+
+UNIQUE_LATER:
 # remove all found
 $s = {};
+
 foreach my $sw ( keys %$later ) {
-	foreach my $port ( keys %{ $later->{$sw} } ) {
-		$s->{$sw}->{$port} = [ uniq_visible( @{ $later->{$sw}->{$port} } ) ];
+	my @ports = sort keys %{ $later->{$sw} };
+	foreach my $port ( @ports ) {
+		my @visible = uniq_visible( @{ $later->{$sw}->{$port} } );
+		$s->{$sw}->{$port} = [ @visible ];
+		push @single_sw_port_visible, [ $sw, $port, $visible[0] ] if $#visible == 0; # single
 	}
 }
+$later = $s;
 
 my $d = dump($s);
 if ( $d eq $last_later ) {
-	warn "FIXME later didn't change, last\n";
-	last;
+	warn "FIXME later didn't change single_sw_port_visible = ",dump( \@single_sw_port_visible ),$/;
+
+	my $did_patch = 0;
+
+	foreach my $single ( @single_sw_port_visible ) {
+		my ( $sw, $port, $visible ) = @$single;
+		foreach my $port ( keys %{ $s->{$visible} } ) {
+			# check back in original full map to see if it was visible
+			my @visible = @{ $stat->{_sw_port_sw}->{$visible}->{$port} };
+			if ( scalar grep(/$sw/,@visible) ) {
+				warn "PATCH $visible $port -> $sw ONLY";
+				$stat->{_found}->{$sw} = "$visible $port";
+				delete $s->{$visible}->{$port};
+				$did_patch++;
+				$d = dump($s);
+				warn "PATCHED _found = ", dump($stat->{_found});
+				warn "PATCHED s = $d\n";
+				$later = $s;
+				goto UNIQUE_LATER;
+			} else {
+				die "fatal inconsistency - dungeon colapses, you die";
+			}
+		}
+	}
+	warn "## applied $did_patch patches to unblock\n";
+
+	last if $d eq $last_later;
+	
 }
 $last_later = $d;
 
@@ -179,6 +214,7 @@ $later = undef;
 
 warn "FINAL _found = ",dump( $stat->{_found} ),$/;
 warn "FINAL _trunk = ",dump( $stat->{_trunk} ),$/;
+warn "FINAL later  = ",dump( $later ),$/;
 
 
 my $node;
