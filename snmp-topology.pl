@@ -66,6 +66,7 @@ if ( -e $mac_include ) {
 		my ($mac,$host) = split(/\s+/,$_,2);
 		$mac =~ s/^0//; $mac =~ s/:0/:/g; # mungle mac to snmp format without leading zeros
 		$stat->{_mac2sw}->{$mac} = $host;
+		$count++;
 	}
 #	warn "# $mac_include added to _mac2sw = ",dump($stat->{_mac2sw}),$/;
 	warn "# $mac_include added to _mac2sw $count hosts\n";
@@ -254,6 +255,7 @@ if ( $ports ) {
 			sort { $a->[0] <=> $b->[0] }
 			@{ $node->{$n} };
 #warn "XXX $n ",dump( \@port_sw );
+		no warnings;
 		print $dot qq!"$n" [ label="!.uc($n).'|' . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
 	}
 }
@@ -262,6 +264,7 @@ foreach my $e ( @edges ) {
 	if (! $ports) {
 		print $dot sprintf qq{ "%s" -> "%s" [ taillabel="%s" ; headlabel="%s" ]\n}, @$e;
 	} else {
+		no warnings;
 		print $dot sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
 	}
 }
