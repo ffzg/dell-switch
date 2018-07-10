@@ -53,7 +53,7 @@ foreach my $file ( @dumps ) {
 
 open(my $fh, '>', '/dev/shm/mac2sw');
 foreach my $mac ( keys %{ $stat->{_mac2sw} } ) {
-	print $fh $mac, " ", macfmt( $stat->{_mac2sw}->{$mac} ), "\n";
+	print $fh macfmt($mac), " ", $stat->{_mac2sw}->{$mac}, "\n";
 };
 
 my $s = $stat->{_sw_mac_port_vlan};
