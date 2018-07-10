@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# we are extracting switch names from munin config
+
+grep '^\[wifi.ffzg;wap' /etc/munin/munin.conf | cut -d';' -f2 | sed 's/\]$//'
+
