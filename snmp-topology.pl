@@ -71,8 +71,6 @@ foreach my $sw ( keys %$s ) {
 
 warn "# _sw_port_sw = ",dump($stat->{_sw_port_sw});
 
-open(my $dot, '>', '/tmp/snmp-topology.dot');
-print $dot "digraph topology {\n";
 
 my $s = $stat->{_sw_port_sw};
 our $later;
@@ -129,7 +127,6 @@ foreach my $sw ( sort keys %$s ) {
 		if ( $#visible == 0 ) {
 			warn "++++ $sw $port $visible[0]\n";
 			#print "$sw $port $visible[0]\n";
-			print $dot qq{ "$sw" -> "$visible[0]" [ label="$port" ];\n};
 			$stat->{_found}->{$visible[0]} = "$sw $port";
 		
 		} elsif ( @visible ) {
@@ -156,11 +153,58 @@ $later = undef;
 
 } # while
 
-print $dot "}\n";
-
 warn "FINAL _found = ",dump( $stat->{_found} ),$/;
 warn "FINAL _trunk = ",dump( $stat->{_trunk} ),$/;
 
-foreach my $sw ( keys %{ $stat->{_found} } ) {
-	printf "%s -> %s %s\n", $stat->{_found}->{$sw}, $sw, uniq(@{ $stat->{_trunk}->{$sw} });
+
+my $node;
+my @edges;
+
+my $ports = $ENV{PORTS} || 0; # FIXME
+
+
+open(my $dot, '>', '/tmp/snmp-topology.dot');
+
+my $shape = $ports ? 'record' : 'ellipse';
+my $rankdir = $ports ? 'TB' : 'LR';
+print $dot <<"__DOT__";
+digraph topology {
+graph [ rankdir = $rankdir ]
+node [ shape = $shape ]
+edge [ color = "gray" ]
+__DOT__
+
+foreach my $to_sw ( keys %{ $stat->{_found} } ) {
+	my ($from_sw, $from_port) = split(/ /,$stat->{_found}->{$to_sw},2);
+	my @to_port = uniq(@{ $stat->{_trunk}->{$to_sw} });
+	my $to_port = $to_port[0];
+	warn "ERROR: $to_sw has ",dump(\@to_port), " ports instead of just one!" if $#to_port > 0;
+	printf "%s %s -> %s %s\n", $from_sw, $from_port, $to_sw, $to_port;
+	push @edges, [ $from_sw, $to_sw, $from_port, $to_port ];
+	push @{ $node->{$from_sw} }, [ $from_port, $to_sw ];
+	push @{ $node->{$to_sw} }, [ $to_port, $from_sw ]
 }
+
+warn "# edges = ",dump(\@edges);
+warn "# node = ",dump($node);
+
+if ( $ports ) {
+	foreach my $n ( keys %$node ) {
+		my @port_sw =
+			sort { $a->[0] <=> $b->[1] }
+			@{ $node->{$n} };
+warn "XXX $n ",dump( \@port_sw );
+		print $dot qq!"$n" [ label="*$n*|! . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
+	}
+}
+
+foreach my $e ( @edges ) {
+	if (! $ports) {
+		print $dot sprintf qq{ "%s" -> "%s" [ taillabel="%s" ; headlabel="%s" ]\n}, @$e;
+	} else {
+		print $dot sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
+	}
+}
+
+print $dot "}\n";
+
