@@ -110,6 +110,10 @@ while() {
 		$buff = '';
 	} elsif ( $buff =~ s{Management access will be blocked for the duration of the transfer.*Are you sure you want to start\? \(y/n\) }{}s ) {
 		send_pty 'y';
+	} elsif ( $buff =~ s{\QThis command will reset the whole system and disconnect your current session.\E}{}s ) { # reload
+		warn "\nRELOAD detected\n";
+		sleep 0.5;
+		send_pty 'y';
 	} elsif ( $buff =~ m{MikroTik RouterOS} ) {
 		warn "\nERROR: don't know how to talk to MicroTik - ABORTING";
 		exit 0;
