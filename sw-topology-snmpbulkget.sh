@@ -3,7 +3,10 @@
 # Usage: $0 [sw [oid]]
 
 dir=/dev/shm/snmp-topology/
-test ! -d $dir && mkdir $dir
+if [ ! -d $dir ] ; then
+	mkdir $dir
+	ln -sv `pwd`/snmp-topology/.git $dir/
+fi
 
 . ./snmp.conf
 

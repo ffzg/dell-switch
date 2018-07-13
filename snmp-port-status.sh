@@ -8,8 +8,11 @@ if [ -z "$1" ]; then
 	exit 4
 fi
 
-log=/dev/shm/port-status/
-test -d $log || mkdir $log
+dir=/dev/shm/port-status/
+if [ ! -d $dir ] ; then
+	mkdir $dir
+	ln -sv `pwd`/port-status/.git $dir/
+fi
 
 sw="$1"
 shift # rest of arguments are IfEntry SEQUENCE
@@ -20,35 +23,35 @@ snmpwalk="snmpwalk -Oqs -v2c -Cc -c $COMMUNITY $sw"
 
 fping $sw 2>>/dev/shm/dead
 
-:> $log/$sw
+:> $dir/$sw
 
 for oid in ifName ifHighSpeed ifOperStatus $extra ifType ifAlias
 do
 	echo -n "# snmpwalk $sw [$oid] = " >/dev/stderr
 
-	$snmpwalk $oid | cut -d. -f2- | tee $log/$sw-$oid | wc -l >/dev/stderr
+	$snmpwalk $oid | cut -d. -f2- | tee $dir/$sw-$oid | wc -l >/dev/stderr
 
 	# put [] around alias and remove empty ones
 	if [ "$oid" = 'ifAlias' ] ; then
-		cat $log/$sw-$oid | sed -e 's/ / [/' -e 's/$/]/' -e 's/ \[\]$//' > $log/$sw-$oid.new && mv $log/$sw-$oid.new $log/$sw-$oid
+		cat $dir/$sw-$oid | sed -e 's/ / [/' -e 's/$/]/' -e 's/ \[\]$//' > $dir/$sw-$oid.new && mv $dir/$sw-$oid.new $dir/$sw-$oid
 	fi
 
-	if [ ! -s $log/$sw ] ; then
-		mv $log/$sw-$oid $log/$sw
+	if [ ! -s $dir/$sw ] ; then
+		mv $dir/$sw-$oid $dir/$sw
 	else
-		join -a 1 $log/$sw $log/$sw-$oid > $log/$sw.new && mv $log/$sw.new $log/$sw
-		rm $log/$sw-$oid
+		join -a 1 $dir/$sw $dir/$sw-$oid > $dir/$sw.new && mv $dir/$sw.new $dir/$sw
+		rm $dir/$sw-$oid
 	fi
 done
 
 # add switch name prefix
-cat $log/$sw | sed "s/^/$sw /" > $log/$sw.new && mv $log/$sw.new $log/$sw
+cat $dir/$sw | sed "s/^/$sw /" > $dir/$sw.new && mv $dir/$sw.new $dir/$sw
 
-cat $log/$sw
+cat $dir/$sw
 
 test ! -z "$extra" && exit 0 # don't commit if we have custom oids
 
-ports_changed=`cd $log && git diff $sw | grep '^-' | awk '{ print $3 }' | tr '\n' ' '`
+ports_changed=`cd $dir && git diff $sw | grep '^-' | awk '{ print $3 }' | tr '\n' ' '`
 if [ ! -z "$ports_changed" ] ; then
-	cd $log && git commit -m "$sw : $ports_changed" $log/$sw
+	cd $dir && git commit -m "$sw : $ports_changed" $dir/$sw
 fi

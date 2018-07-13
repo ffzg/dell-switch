@@ -3,7 +3,10 @@
 # Usage: $0 [sw [oid]]
 
 dir=/dev/shm/snmpbulkwalk/
-test ! -d $dir && mkdir $dir
+if [ ! -d $dir ] ; then
+	mkdir $dir
+	ln -sv `pwd`/snmpbulkwalk/.git $dir/
+fi
 
 . ./snmp.conf
 
