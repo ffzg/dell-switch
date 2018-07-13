@@ -80,17 +80,50 @@ foreach my $sw ( keys %$s ) {
 			foreach my $port ( keys %{ $s->{$sw}->{$mac} } ) {
 				#$stat->{_sw_port_sw}->{$sw}->{$port}->{$mac_name} = $s->{$sw}->{$mac}->{$port};
 				push @{ $stat->{_sw_port_sw}->{$sw}->{$port} }, $mac_name;
+				push @{ $stat->{_sw_sw_port}->{$sw}->{$mac_name} }, $port;
 			}
 		}
 	}
 }
 
 warn "# _sw_port_sw = ",dump($stat->{_sw_port_sw});
+warn "# _sw_sw_port = ",dump($stat->{_sw_sw_port});
 
 
 my $s = $stat->{_sw_port_sw};
 our $later;
 my $last_later;
+
+our @single_sw_port_visible;
+sub single_sw_port_visible {
+	@single_sw_port_visible = ();
+	my $s = {};
+	foreach my $sw ( keys %$later ) {
+		if ( exists $stat->{_found}->{$sw} ) {
+			my @d = delete $later->{$sw};
+			warn "REMOVED $sw from later it's _found! later was = ",dump( \@d );
+			next;
+		}
+		my @ports = sort keys %{ $later->{$sw} };
+		foreach my $port ( @ports ) {
+			my @visible = uniq_visible( @{ $later->{$sw}->{$port} } );
+			if ( $#visible < 0 ) {
+				warn "REMOVED $sw $port from later it's empty";
+				delete $later->{$sw}->{$port};
+				next;
+			}
+			$s->{$sw}->{$port} = [ @visible ];
+			push @single_sw_port_visible, [ $sw, $port, $visible[0] ] if $#visible == 0; # single
+		}
+	}
+	my $d_s = dump($s);
+	my $d_l = dump($later);
+	if ( $d_s ne $d_l ) {
+		$later = $s;
+		warn "# single_sw_port_visible = ",dump( \@single_sw_port_visible );
+		warn "# reduced later = ",dump( $later );
+	}
+}
 
 sub uniq {
 	my @visible = @_;
@@ -145,11 +178,13 @@ foreach my $sw ( sort keys %$s ) {
 			warn "++++ $sw $port $visible[0]\n";
 			#print "$sw $port $visible[0]\n";
 			$stat->{_found}->{$visible[0]} = "$sw $port";
-		
-		} elsif ( @visible ) {
+			single_sw_port_visible();
+
+		} elsif ( $#visible > 0 ) {
 			to_later( $sw, $port, @visible );
 		} else {
-			warn "#### $sw $port doesn't have anything visible\n";
+			warn "#### $sw $port doesn't have anything visible, reseting visibility\n";
+			to_later( $sw, $port, @{ $stat->{_sw_port_sw}->{$sw}->{$port} } );
 		}
 			
 	}
@@ -157,51 +192,59 @@ foreach my $sw ( sort keys %$s ) {
 }
 
 warn "NEXT later = ",dump($later),$/;
-#$s = $later;
 
+single_sw_port_visible();
 
-my @single_sw_port_visible;
-
-UNIQUE_LATER:
-# remove all found
-$s = {};
-
-foreach my $sw ( keys %$later ) {
-	my @ports = sort keys %{ $later->{$sw} };
-	foreach my $port ( @ports ) {
-		my @visible = uniq_visible( @{ $later->{$sw}->{$port} } );
-		$s->{$sw}->{$port} = [ @visible ];
-		push @single_sw_port_visible, [ $sw, $port, $visible[0] ] if $#visible == 0; # single
-	}
-}
-$later = $s;
-
-my $d = dump($s);
+my $d = dump($later);
 if ( $d eq $last_later ) {
 	warn "FIXME later didn't change single_sw_port_visible = ",dump( \@single_sw_port_visible ),$/;
 
 	my $did_patch = 0;
 
-	foreach my $single ( @single_sw_port_visible ) {
+	while ( @single_sw_port_visible ) {
+		my $single = shift @single_sw_port_visible;
 		my ( $sw, $port, $visible ) = @$single;
-		foreach my $port ( keys %{ $s->{$visible} } ) {
+		warn "XXX $sw | $port | $visible\n";
+
+		foreach my $port ( keys %{ $later->{$visible} } ) {
 			# check back in original full map to see if it was visible
 			my @visible = @{ $stat->{_sw_port_sw}->{$visible}->{$port} };
 			if ( scalar grep(/$sw/,@visible) ) {
 				warn "PATCH $visible $port -> $sw ONLY";
 				$stat->{_found}->{$sw} = "$visible $port";
-				delete $s->{$visible}->{$port};
+
+				my @d = delete $later->{$visible}->{$port};
+				warn "DELETED $visible $port ",dump(@d);
 				$did_patch++;
-				$d = dump($s);
-				warn "PATCHED _found = ", dump($stat->{_found});
-				warn "PATCHED s = $d\n";
-				$later = $s;
-				goto UNIQUE_LATER;
+
+				single_sw_port_visible();
 			} else {
-				die "fatal inconsistency - dungeon colapses, you die";
+				warn "FATAL $visible $port NO $sw IN ",dump( \@visible );
 			}
 		}
+
+		if ( ! $did_patch ) {
+			# OK, we have link from trunk probably, which port was originally visible on?
+
+			foreach my $port ( keys %{ $stat->{_sw_port_sw}->{$visible} } ) {
+				my @visible = grep /$sw/, @{ $stat->{_sw_port_sw}->{$visible}->{$port} };
+				if  ( scalar @visible ) {
+					warn "PATCH-2 $visible $port -> $sw\n";
+					$stat->{_found}->{$sw} = "$visible $port";
+
+					my @d = delete $later->{$visible}->{$port};
+					warn "DELETED $visible $port ",dump(@d);
+					$did_patch++;
+
+					single_sw_port_visible();
+				} else {
+					warn "FATAL $visible $port _sw_port_sw doesn't have $sw";
+				}
+			}
+		}
+
 	}
+
 	warn "## applied $did_patch patches to unblock\n";
 
 	last if $d eq $last_later;
@@ -251,11 +294,11 @@ warn "# node = ",dump($node);
 
 if ( $ports ) {
 	foreach my $n ( keys %$node ) {
+		no warnings;
 		my @port_sw =
 			sort { $a->[0] <=> $b->[0] }
 			@{ $node->{$n} };
 #warn "XXX $n ",dump( \@port_sw );
-		no warnings;
 		print $dot qq!"$n" [ label="!.uc($n).'|' . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
 	}
 }
