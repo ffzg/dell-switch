@@ -25,7 +25,7 @@ fping $sw 2>>/dev/shm/dead
 
 :> $dir/$sw
 
-for oid in ifName ifHighSpeed ifOperStatus $extra ifType ifAlias
+for oid in ifName ifHighSpeed ifAdminStatus ifOperStatus $extra ifType ifAlias
 do
 	echo -n "# snmpwalk $sw [$oid] = " >/dev/stderr
 
