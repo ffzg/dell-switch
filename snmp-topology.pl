@@ -42,14 +42,17 @@ foreach my $file ( @dumps ) {
 		} elsif ( m/^BRIDGE-MIB::dot1dTpFdbPort\[STRING: ([^\]]+)\] = INTEGER: (\d+)/ ) {
 			my ( $mac, $port ) = ($1,$2);
 			push @{ $stat->{_sw_mac_port_vlan}->{$sw}->{$mac}->{$port} }, '';
+			$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{''}++;
 		} elsif ( m/^Q-BRIDGE-MIB::dot1qTpFdbPort\[(\d+)\]\[STRING: ([^\]]+)\] = INTEGER: (\d+)/ ) {
 			my ( $vlan, $mac, $port ) = ($1,$2,$3);
 			push @{ $stat->{_sw_mac_port_vlan}->{$sw}->{$mac}->{$port} }, $vlan;
+			$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{$vlan}++;
 		}
 	}
 	#warn "# $sw ",dump( $stat->{$sw} );
 }
 #warn "# stat = ",dump($stat);
+warn "# _sw_port_vlan_count = ",dump($stat->{_sw_port_vlan_count});
 
 open(my $fh, '>', '/dev/shm/mac2sw');
 open(my $fh2, '>', '/dev/shm/mac2sw.snmp');
@@ -285,6 +288,7 @@ foreach my $to_sw ( keys %{ $stat->{_found} } ) {
 	my @to_port = uniq(@{ $stat->{_trunk}->{$to_sw} });
 	my $to_port = $to_port[0];
 	warn "ERROR: $to_sw has ",dump(\@to_port), " ports instead of just one!" if $#to_port > 0;
+	no warnings;
 	printf "%s %s -> %s %s\n", $from_sw, $from_port, $to_sw, $to_port;
 	push @edges, [ $from_sw, $to_sw, $from_port, $to_port ];
 	push @{ $node->{$from_sw} }, [ $from_port, $to_sw ];
