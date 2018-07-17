@@ -52,8 +52,10 @@ foreach my $file ( @dumps ) {
 #warn "# stat = ",dump($stat);
 
 open(my $fh, '>', '/dev/shm/mac2sw');
+open(my $fh2, '>', '/dev/shm/mac2sw.snmp');
 foreach my $mac ( keys %{ $stat->{_mac2sw} } ) {
 	print $fh macfmt($mac), " ", $stat->{_mac2sw}->{$mac}, "\n";
+	print $fh $mac, " ", $stat->{_mac2sw}->{$mac}, "\n";
 };
 
 # XXX inject additional mac in filter to include wap devices
