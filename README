@@ -34,6 +34,15 @@ sw-baraka:sw-baraka 7 g7 1000 down ethernetCsmacd
 sw-baraka:sw-baraka 8 g8 1000 down ethernetCsmacd
 sw-baraka:sw-baraka 9 g9 1000 down ethernetCsmacd
 
+Get additional OID from switches:
+
+dpavlin@black:~/dell-switch$ ./snmp-port-status.sh
+Usage: ./snmp-port-status.sh hostname ifAdminStatus BRIDGE-MIB::dot1dStpPortState ifInErrors ifOutErrors ifInDiscards
+
+If it's started without any arguments, script will show additional OIDs which might be interesting to include along
+default ones. So, to pull ifAdminStatus on all switches we can do something like:
+
+
 
 
 
