@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+test -z "$1" && echo "Usage: $0 d4:ca:6d:01:4c:f2" && exit 1
+
+mac=$1
+
+. ./shm-trunk.regex
+
+grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/mac.$mac | grep --file /dev/shm/trunk.regex -v | cut -d: -f2-
+echo "# mac $mac on "`cat /dev/shm/mac.$mac | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches"

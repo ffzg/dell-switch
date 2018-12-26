@@ -1,0 +1,2 @@
+# hide physical and trunk ports (> 10 mac, port nr <= 49)
+cat /dev/shm/snmp-mac-port/* | cut -d' ' -f1,4 | sort | uniq -c | awk '{ if ( $1 > 10 && $3 <= 49 ) print "/"$2":"$2 " .* " $3 }' > /dev/shm/trunk.regex
