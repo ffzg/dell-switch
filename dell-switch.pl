@@ -3,6 +3,9 @@ use warnings;
 use strict;
 use autodie;
 
+# example usage as pipe:
+# ./ips | sed 's/^/ping /' | NO_LOG=1 ./dell-switch.pl sw-dpc
+
 use Net::OpenSSH;
 use Data::Dump qw(dump);
 use Time::HiRes qw(sleep);
@@ -19,7 +22,13 @@ require 'config.pl';
 my $ip = shift @ARGV || die "usage: $0 IP command[ command ...]\n";
 $ip = $1 if `host $ip` =~ m/has address (\S+)/;
 my @commands = @ARGV;
-@commands = <DATA> unless @commands;
+if ( ! @commands && ! -t STDIN && -p STDIN ) { # we are being piped into
+	while(<>) {
+		push @commands, $_;
+	}
+} else {
+	@commands = <DATA> unless @commands;
+}
 
 warn "\n## ssh $ip\n";
 my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd, default_ssh_opts => [-o => "StrictHostKeyChecking=no"]);
