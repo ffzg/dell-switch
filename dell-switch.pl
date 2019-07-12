@@ -31,7 +31,11 @@ if ( ! @commands && ! -t STDIN && -p STDIN ) { # we are being piped into
 }
 
 warn "\n## ssh $ip\n";
-my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd, default_ssh_opts => [-o => "StrictHostKeyChecking=no"]);
+my $ssh = Net::OpenSSH->new($ip, user => $login, passwd => $passwd, 
+    ssh_cmd => '/usr/bin/ssh1', # apt-get install openssh-client-ssh1
+    master_opts => [ -o => "StrictHostKeyChecking=no", ],
+    default_ssh_opts => [ -o => "StrictHostKeyChecking=no", ],
+);
 my ($pty ,$pid) = $ssh->open2pty();
 if ( ! $pty ) {
 	warn "ERROR: can't connect to $ip, skipping";
