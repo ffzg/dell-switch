@@ -22,10 +22,14 @@ sub macfmt {
 
 foreach my $file ( @dumps ) {
 
+	my $lines = 0;
+	my $ignored = 0;
+
 	open(my $fh, '<', $file);
 	my $sw = $file; $sw =~ s/^.*\///;
 	while(<$fh>) {
 		chomp;
+		$lines++;
 		if ( m/^SNMPv2-MIB::(sysName|sysDescr)\.0 = STRING: (.+)/ ) {
 			$stat->{$sw}->{$1} = $2;
 =for xxx
@@ -39,20 +43,27 @@ foreach my $file ( @dumps ) {
 			#warn "# $sw ",dump($name,$oid,$i,$type,$value),$/;
 			#$stat->{$sw}->{$name}->{$oid}->[$i] = $value;
 			$stat->{_mac2sw}->{$value} = $sw;
+			$stat->{_sw_mac_count}->{$sw}++;
 		} elsif ( m/^BRIDGE-MIB::dot1dTpFdbPort\[STRING: ([^\]]+)\] = INTEGER: (\d+)/ ) {
 			my ( $mac, $port ) = ($1,$2);
 			push @{ $stat->{_sw_mac_port_vlan}->{$sw}->{$mac}->{$port} }, '';
-			$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{''}++;
+			#$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{''}++;
+			$stat->{_sw_port_mac_count}->{$sw}->{$port}++;
 		} elsif ( m/^Q-BRIDGE-MIB::dot1qTpFdbPort\[(\d+)\]\[STRING: ([^\]]+)\] = INTEGER: (\d+)/ ) {
 			my ( $vlan, $mac, $port ) = ($1,$2,$3);
 			push @{ $stat->{_sw_mac_port_vlan}->{$sw}->{$mac}->{$port} }, $vlan;
-			$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{$vlan}++;
+			#$stat->{_sw_port_vlan_count}->{$sw}->{$port}->{$vlan}++;
+			$stat->{_sw_port_mac_count}->{$sw}->{$port}++;
+		} else {
+			$ignored++;
 		}
 	}
 	#warn "# $sw ",dump( $stat->{$sw} );
+	warn "## $file $lines / $ignored ignored";
 }
-#warn "# stat = ",dump($stat);
-warn "# _sw_port_vlan_count = ",dump($stat->{_sw_port_vlan_count});
+warn "# stat = ",dump($stat);
+#warn "# _sw_port_vlan_count = ",dump($stat->{_sw_port_vlan_count});
+warn "# _sw_port_mac_count = ",dump($stat->{_sw_port_mac_count});
 
 open(my $fh, '>', '/dev/shm/mac2sw');
 open(my $fh2, '>', '/dev/shm/mac2sw.snmp');
@@ -75,6 +86,8 @@ if ( -e $mac_include ) {
 	}
 #	warn "# $mac_include added to _mac2sw = ",dump($stat->{_mac2sw}),$/;
 	warn "# $mac_include added to _mac2sw $count hosts\n";
+} else {
+	warn "MISSING $mac_include\n";
 }
 
 my $s = $stat->{_sw_mac_port_vlan};
@@ -166,7 +179,7 @@ foreach my $sw ( sort keys %$s ) {
 
 	if ( $#ports == 0 ) {
 		my $port = $ports[0];
-		#print "$sw $port TRUNK\n";
+		print "$sw $port TRUNK\n";
 		push @{$stat->{_trunk}->{$sw}}, $port; # FIXME multiple trunks?
 		#warn "## _trunk = ",dump( $stat->{_trunk} ).$/;
 
