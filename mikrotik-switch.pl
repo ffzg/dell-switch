@@ -21,6 +21,7 @@ require 'config.pl';
 
 my $hostname = shift @ARGV || die "usage: $0 hostname command[ command ...]\n";
 my @commands = @ARGV;
+
 if ( ! @commands && ! -t STDIN && -p STDIN ) { # we are being piped into
 	while(<>) {
 		push @commands, $_;
@@ -65,7 +66,6 @@ while ( my $command = shift @commands_while ) {
 	print $out;
 }
 
-
-
-
-
+if ( ! @commands ) {
+	system "cp -v /srv/ftp/upload/$hostname.rsc mikrotik/";
+}
