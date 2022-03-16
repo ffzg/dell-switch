@@ -31,6 +31,12 @@ if [ ! -z "$1" ] ; then
 fi
 
 #( ls -d $log.last/* | sed 's/^.*\///' ; ./ips ) | sort -u | while read ip
+
+if [ ! -z "$1" ] ; then
+	snmp_walk $1
+fi
+
+
 ./sw-names | while read ip
 do
 	echo "## $ip"
