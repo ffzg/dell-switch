@@ -36,6 +36,9 @@ if [ ! -z "$1" ] ; then
 	snmp_walk $1
 fi
 
+# fetch all switches in parallel
+./sw-names | parallel -j 70 $0
+exit 0
 
 ./sw-names | while read ip
 do
