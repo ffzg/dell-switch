@@ -1,10 +1,16 @@
 #!/bin/sh -e
 
+# update with: ./sw-port-status.sh
+
 test -z "$1" && echo "Usage: $0 d4:ca:6d:01:4c:f2" && exit 1
 
 mac=$1
 
 . ./shm-trunk.regex
 
-grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/mac.$mac | grep --file /dev/shm/trunk.regex -v | cut -d: -f2-
+grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/mac.$mac | grep --file /dev/shm/trunk.regex -v | cut -d: -f2- | while read name vlan mac port ; do
+	# sw-rack2 - 2c:ea:7f:6f:0c:ec 27
+	echo -n "$name $vlan $mac $port "
+	grep " $port " /dev/shm/port-status/$name | cut -d' ' -f3- # add port status and description
+done
 echo "# mac $mac on "`cat /dev/shm/mac.$mac | cut -d: -f2- | cut -d' ' -f1 | sort -u | wc -l`" switches"
