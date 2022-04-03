@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-ip=$1
+name=$1
 
-ping -c 1 $ip >&2 && \
+ip=$( ping -c 1 $name | grep '^PING' | cut -d' ' -f3 )
 /usr/sbin/arp -an | grep "\($ip\)" | awk '{ print $4 }'
