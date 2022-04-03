@@ -99,7 +99,7 @@ while() {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/([\w\-\(\)]+)#$/ ) {
+	} elsif ( $buff =~ m/[\n\r]([\w\-\(\)]+)#$/ ) {
 		my $hostname = $1;
 		if ( $buff ) {
 			save_log $ip, $hostname, $command, $buff;
