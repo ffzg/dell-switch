@@ -99,7 +99,7 @@ while() {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/[\n\r]([\w\-\(\)]+)#$/ ) {
+	} elsif ( $buff =~ m/[\n\r\b]([\w\-\(\)]+)#\s*$/ ) {
 		my $hostname = $1;
 		if ( $buff ) {
 			save_log $ip, $hostname, $command, $buff;
@@ -146,4 +146,3 @@ show vlan
 show running-config
 show bridge address
 show interfaces status
-
