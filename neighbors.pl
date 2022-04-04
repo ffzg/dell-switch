@@ -17,8 +17,25 @@ open(my $f, '<'. '/dev/shm/sw-ip-name-mac');
 while(<$f>) {
 	chomp;
 	my ( $ip, $name, $mac ) = split(/ /,$_);
+	$mac = lc($mac);
 	$mac2ip->{$mac} = $ip;
 	$mac2name->{$mac} = $name;
+}
+
+sub mac2name {
+	my ( $mac, $name ) = @_;
+
+	$mac = lc($mac);
+
+	if ( exists $mac2name->{$mac} ) {
+		my $mac_name = $mac2name->{$mac};
+		if ( $name eq '' ) {
+			return ( $mac, $mac_name );
+		} else {
+			warn "ERROR: name different $name != $mac_name" if $name ne $mac_name;
+		}
+	}
+	return ( $mac, $name );
 }
 
 warn "# mac2name = ",dump($mac2name) if $debug;
@@ -91,14 +108,8 @@ foreach my $file ( glob('log/*lldp*') ) {
 				$v[1] =~ s/:$//;
 			}
 
-			if ( exists $mac2name->{$v[1]} ) {
-				my $mac_name = $mac2name->{$v[1]};
-				if ( $v[3] eq '' ) {
-					$v[3] = $mac_name;
-				} else {
-					warn "ERROR: name different $v[3] != $mac_name" if $v[3] ne $mac_name;
-				}
-			}
+			( $v[1], $v[3] ) = mac2name( $v[1], $v[3] );
+
 
 			#my ( $port, $device_id, $port_id, $system_name, $cap ) = @v;
 			if ( @ports && $v[0] =~ m/^$/ ) {
@@ -123,21 +134,21 @@ foreach my $file ( glob('log/*lldp*') ) {
 
 # prase MikroTik /ip neighbor print detail terse
 
-foreach my $file ( glob('../mikrotik-switch/out/*neighbor*') ) {
+foreach my $file ( glob('../mikrotik-switch/out/*neighbor*'), glob('../tilera/out/*neighbor*') ) {
 	my $name = $1 if $file =~ m{out/([\w\-]+)\.ip neighbor};
-	print "## [$name] file $file\n";
+	print "## [$name] file $file\n" if $debug;
 	open(my $f, '<', $file);
 	while(<$f>) {
 		chomp;
 		next if m/^\s*$/;
 		s{^\s*\d+\s+}{}; # remote ordinal number
-		print "# $_\n";
+		print "# $_\n" if $debug;
 		my $l;
 		foreach my $kv ( split(/ /, $_) ) {
 			my ($k,$v) = split(/=/, $kv);
 			$l->{$k} = $v;
 		}
-		warn "## l=",dump($l),$/;
+		#warn "## l=",dump($l),$/;
 		# Port       Device ID          Port ID          System Name     Capabilities 
 		my @v = (
 			$l->{interface},
@@ -148,15 +159,7 @@ foreach my $file ( glob('../mikrotik-switch/out/*neighbor*') ) {
 			join(' ', $l->{address}, $l->{platform}, $l->{board}, $l->{version} ),
 		);
 
-			# FIXME: duplicated from above
-			if ( exists $mac2name->{$v[1]} ) {
-				my $mac_name = $mac2name->{$v[1]};
-				if ( $v[3] eq '' ) {
-					$v[3] = $mac_name;
-				} else {
-					warn "ERROR: name different $v[3] != $mac_name" if $v[3] ne $mac_name;
-				}
-			}
+		( $v[1], $v[3] ) = mac2name( $v[1], $v[3] );
 
 		print "$name ", join(' | ', @v), $/;
 	}
