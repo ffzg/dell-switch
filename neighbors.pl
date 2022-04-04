@@ -69,6 +69,8 @@ foreach my $file ( glob('log/*lldp*') ) {
 
 		s{^\s+}{} if $file =~ m/remote-device/; # remote left-over from pager
 
+		my @v;
+
 		if ( defined($line_regex) &&  /$line_regex/ ) {
  			# port, mac, remote_port, system_name, capabilities
 			my @v = ( $1, $2, $3, $4, $5 );
@@ -93,7 +95,13 @@ foreach my $file ( glob('log/*lldp*') ) {
 			} else {
 				die "don't know how to parse $file";
 			}
+		} elsif ( defined($line_regex) && $file =~ m/remote-device/ ) {
+			# if we don't have system name, line_regex is too long
+			my @s = split(/\s+/,$_);
+			@v = ( $s[0], $s[2], $s[3], '', '' ) if $#s == 3;
+		}
 
+		if (@v) {
 			print "# [$_] ",join('|',@v),$/ if $debug;
 
 			@v = map { s/^\s+//; s/\s+$//; $_ } @v;
