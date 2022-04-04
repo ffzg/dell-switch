@@ -3,22 +3,21 @@ use warnings;
 use strict;
 use autodie;
 
-# ./sw-ip-name-mac.sh
+# ./sw-name-mac.sh
 # ./sw-names | xargs -i ./dell-switch.pl {} 'show lldp neighbors'
 
 use Data::Dump qw(dump);
 
 my $debug = $ENV{DEBUG} || 0;
 
-my $mac2ip;
 my $mac2name;
 
-open(my $f, '<'. '/dev/shm/sw-ip-name-mac');
+open(my $f, '<'. '/dev/shm/sw-name-mac');
 while(<$f>) {
 	chomp;
-	my ( $ip, $name, $mac ) = split(/ /,$_);
+	#my ( $ip, $name, $mac ) = split(/ /,$_);
+	my ( $name, $mac ) = split(/ /,$_);
 	$mac = lc($mac);
-	$mac2ip->{$mac} = $ip;
 	$mac2name->{$mac} = $name;
 }
 
@@ -29,11 +28,8 @@ sub mac2name {
 
 	if ( exists $mac2name->{$mac} ) {
 		my $mac_name = $mac2name->{$mac};
-		if ( $name eq '' ) {
-			return ( $mac, $mac_name );
-		} else {
-			warn "ERROR: name different $name != $mac_name" if $name ne $mac_name;
-		}
+		warn "ERROR: name different $name != $mac_name" if $name && $name ne $mac_name;
+		return ( $mac, $mac_name );
 	}
 	return ( $mac, $name );
 }
