@@ -116,6 +116,18 @@ while() {
 		}
 	} elsif ( $buff =~ m/% Unrecognized command/ ) {
 		exit 1;
+	} elsif ( $buff =~ m/% Invalid input detected at .* marker/ ) {
+
+		# try to rewrite command differences
+
+		if ( $command =~ m/show lldp neighbors/ ) {
+			unshift @commands_while, 'show lldp remote-device all';
+			undef $command; # don't save this command
+			$buff = '';
+		}
+
+		warn "# commands_while = ",dump( \@commands_while );
+
 	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return>\s*}{} ) {
 		send_pty " ";
 	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
