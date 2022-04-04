@@ -23,7 +23,7 @@ warn "# mac2name = ",dump($mac2name);
 
 foreach my $file ( glob('log/*lldp*') ) {
 	my ( undef, $name, undef ) = split(/_/, $file);
-	#print "# $name $file\n";
+	print "# $name $file\n";
 
 	my $line_regex;
 	my @ports;
@@ -40,12 +40,45 @@ foreach my $file ( glob('log/*lldp*') ) {
 			$line_regex =~ s/^/(/g;
 			$line_regex =~ s/ /) (/g;
 			$line_regex =~ s/$/)/g;
-			#print "## line_regex = $line_regex\n";
+
+			if ( $file =~ m/remote-device/ ) {
+				$line_regex =~ s{\) \(}{.)(}g;
+				$line_regex =~ s{\(\.+\)$}{(.+)}g;
+			}
+
+			print "## line_regex = $line_regex\n";
 			next;
 		}
+
+		s{^\s+}{} if $file =~ m/remote-device/; # remote left-over from pager
+
 		if ( defined($line_regex) &&  /$line_regex/ ) {
-			# Port       Device ID          Port ID          System Name     Capabilities 
+ 			# port, mac, remote_port, system_name, capabilities
 			my @v = ( $1, $2, $3, $4, $5 );
+
+			if ( $file =~ m/neighbors/ ) {
+
+				# show lldp neighbours
+				# Port       Device ID          Port ID          System Name     Capabilities 
+
+			} elsif ( $file =~ m/remote-device/ ) {
+
+				# show lldp remote-device all
+				# Interface RemID   Chassis ID          Port ID           System Name
+
+				@v = ( $v[0], $v[2], $v[3], $v[4], '' );
+
+				# move overflow numbers from system name to port id
+				if ( $v[3] =~ s{^(\d+)}{} ) {
+					$v[2] .= $1;
+				}
+
+			} else {
+				die "don't know how to parse $file";
+			}
+
+			print "# [$_] ",join('|',@v),$/;
+
 			@v = map { s/^\s+//; s/\s+$//; $_ } @v;
 
 			if ( length($v[1]) == 6 ) { # decode text mac
@@ -64,7 +97,7 @@ foreach my $file ( glob('log/*lldp*') ) {
 			}
 
 			#my ( $port, $device_id, $port_id, $system_name, $cap ) = @v;
-			if ( $v[0] =~ m/^$/ ) {
+			if ( @ports && $v[0] =~ m/^$/ ) {
 				my @old = @{ pop @ports };
 				foreach my $i ( 0 .. $#old ) {
 					$old[$i] .= $v[$i];
@@ -74,11 +107,12 @@ foreach my $file ( glob('log/*lldp*') ) {
 				push @ports, [ @v ];
 			}
 		} else {
-			warn "# $_<--\n";
+			print "# $_<--\n";
 		}
 	}
 
 	foreach my $p ( @ports ) {
+		next if ( $p->[1] eq $p->[2] && $p->[3] eq '' ); # FIXME hosts?
 		print "$name ", join(' | ', @$p ), "\n";
 	}
 }
