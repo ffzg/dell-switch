@@ -73,7 +73,7 @@ foreach my $file ( glob('log/*lldp*') ) {
 
 		if ( defined($line_regex) &&  /$line_regex/ ) {
  			# port, mac, remote_port, system_name, capabilities
-			my @v = ( $1, $2, $3, $4, $5 );
+			@v = ( $1, $2, $3, $4, $5 );
 
 			if ( $file =~ m/neighbors/ ) {
 
@@ -99,6 +99,10 @@ foreach my $file ( glob('log/*lldp*') ) {
 			# if we don't have system name, line_regex is too long
 			my @s = split(/\s+/,$_);
 			@v = ( $s[0], $s[2], $s[3], '', '' ) if $#s == 3;
+		} elsif ( $debug ) {
+			my $l = $line_regex;
+			$l =~ s{[\(\)]}{}g;
+			print "# [$_]<-- LINE IGNORED\n# [$l]\n",dump($_);
 		}
 
 		if (@v) {
@@ -126,7 +130,11 @@ foreach my $file ( glob('log/*lldp*') ) {
 				push @ports, [ @v ];
 			}
 		} else {
-			print "# $_<--\n" if $debug;
+			if ( $debug ) {
+				my $l = $line_regex;
+				$l =~ s{[\(\)]}{}g;
+				print "# [$_]<-- IGNORED no v\n# [$l]\n";
+			}
 		}
 	}
 
@@ -152,6 +160,9 @@ foreach my $file ( glob('../mikrotik-switch/out/*neighbor*'), glob('../tilera/ou
 			my ($k,$v) = split(/=/, $kv);
 			$l->{$k} = $v;
 		}
+
+		no warnings 'uninitialized';
+
 		#warn "## l=",dump($l),$/;
 		# Port       Device ID          Port ID          System Name     Capabilities 
 		my @v = (
