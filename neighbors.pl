@@ -139,7 +139,7 @@ foreach my $file ( glob('log/*lldp*') ) {
 	}
 
 	foreach my $p ( @ports ) {
-		next if ( $p->[1] eq $p->[2] && $p->[3] eq '' ); # FIXME hosts?
+		next if ( $p->[1] eq lc($p->[2]) && $p->[3] eq '' ); # FIXME hosts?
 		print "$name ", join(' | ', @$p ), "\n";
 	}
 }
@@ -158,7 +158,7 @@ foreach my $file ( glob('../mikrotik-switch/out/*neighbor*'), glob('../tilera/ou
 		my $l;
 		foreach my $kv ( split(/ /, $_) ) {
 			my ($k,$v) = split(/=/, $kv);
-			$l->{$k} = $v;
+			$l->{$k} = $v if ( defined($v) && $v ne '""' );
 		}
 
 		no warnings 'uninitialized';
