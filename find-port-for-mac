@@ -1,6 +1,12 @@
 #!/bin/sh -e
 
-# update with: ./sw-port-status.sh
+# update with:
+# fping -l $( ./sw-names ; ./wap-names )
+# ./snmp-mac-port
+# ./sw-port-status.sh
+
+# example usage:
+# ./find-port-for-mac $( ./mac4ip.sh wap-f300 )
 
 test -z "$1" && echo "Usage: $0 d4:ca:6d:01:4c:f2" && exit 1
 
