@@ -1,0 +1,11 @@
+#!/bin/sh -xe
+
+sw=$1 ; shift
+port=$1 ; shift
+if [ -z "$1" ] ; then
+	description="no description"
+else
+	description="description $*"
+fi
+
+NO_LOG=1 ./dell-switch.pl $sw 'configure' "interface ethernet g$port" "$description" 'exit' 'exit' 'copy running-config startup-config'
