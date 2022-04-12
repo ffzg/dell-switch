@@ -65,6 +65,8 @@ sub sw_name_mac_port {
 	}
 }
 
+my $gv; # collect for graphviz
+
 my @files = @ARGV;
 @files = glob('snmpbulkwalk/*') unless @files;
 
@@ -94,6 +96,10 @@ foreach my $file ( @files ) {
 			$sw->{$name}->{$1}->[$2] = fix_mac($3);
 		} elsif ( m/::(ifName|ifAlias)\[(\d\d?)\] = STRING: (.+)/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
+			if ( $1 eq 'ifName' ) {
+				my ( $if_name, $port ) = ($3,$2);
+				$sw->{$name}->{port_name_to_number}->{$3} = $2;
+			}
 		} elsif ( m/::(ifAdminStatus|ifOperStatus|ifType|dot3StatsDuplexStatus)\[(\d\d?)\] = INTEGER: (\w+)\(/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
 		} elsif ( m/::(dot1dStpPortPathCost)\[(\d\d?)\] = INTEGER: (\d+)/ ) {
@@ -136,10 +142,70 @@ foreach my $file ( @files ) {
 
 		}
 		if ( exists( $sw->{$name}->{port_for_switch}->{ $port } ) ) {
-			print " ",join(',', sort keys %{ $sw->{$name}->{port_for_switch}->{ $port } } );
+			my @visible = sort keys %{ $sw->{$name}->{port_for_switch}->{ $port } };
+			print " ",join(',', @visible);
+
+			if ( scalar @visible == 1 ) {
+				$gv->{$name}->{$port}->{ $visible[0] }->{ 'no_port' } = [$port,0]; # no port
+			}
 		}
 		print "\n";
 	}}
 
 # fix ifPhysAddress
 
+# read neighbour visibility from lldp
+
+sub port2number {
+	my ($name,$port) = @_;
+
+	return $port if $port =~ m/^\d+$/;
+	$port =~ s{bridge\d*/}{};  # remove mikrotik port prefix
+	$port =~ s{,bridge\d*$}{}; # remove mikrotik port suffix
+	$port =~ s{,bonding\d*$}{}; # remove mikrotik port suffix
+
+	if ( exists $sw->{$name}->{port_name_to_number}->{$port} ) {
+		return $sw->{$name}->{port_name_to_number}->{$port};
+	}
+
+	# gigabitethernet1/0/45 or gi1/0/45
+	if ( $port =~ m{1/0/(\d+)$} ) {
+		return $1;
+	}
+
+	# linux
+	if ( $port =~ m{eth(\d+)} ) {
+		return $1;
+	}
+
+	my @fuzzy = grep { m/^$port/ } keys %{ $sw->{$name}->{port_name_to_number} };
+	if ( scalar @fuzzy == 1 ) {
+		return $sw->{$name}->{port_name_to_number}->{$fuzzy[0]}
+	}
+
+	warn "ERROR [$_] can't find port $port for $name in ",dump( $sw->{$name}->{port_name_to_number} );
+}
+
+sub fix_sw_name {
+	my $name = shift;
+	if ( $name eq 'rack3-lib' ) {
+		$name = 'sw-lib-srv';
+	}
+	return $name;
+}
+
+
+open(my $n_fh, '<', '/dev/shm/neighbors.tab');
+while(<$n_fh>) {
+	chomp;
+	my ( $sw1, $port1, undef, $port2, $sw2, undef ) = split(/\t/, $_, 6 );
+	next if $port2 =~ m/:/; # skip mac in port number (wap lldp leek)
+	next unless $sw2 && $port2;
+	$sw1 = fix_sw_name($sw1);
+	my $port1_nr = port2number( $sw1, $port1 );
+	my $port2_nr = port2number( $sw2, $port2 );
+	$gv->{$sw1}->{$port1_nr}->{$sw2}->{$port2_nr} = [ $port1, $port2 ];
+	delete $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'} if exists $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'};
+}
+
+print "# gv = ",dump( $gv );

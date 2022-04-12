@@ -36,6 +36,8 @@ sub mac2name {
 
 warn "# mac2name = ",dump($mac2name) if $debug;
 
+open(my $n_fh, '>', '/dev/shm/neighbors.tab');
+
 # parse Dell switch lldp neighbors output
 
 foreach my $file ( glob('log/*lldp*') ) {
@@ -141,6 +143,7 @@ foreach my $file ( glob('log/*lldp*') ) {
 	foreach my $p ( @ports ) {
 		next if ( $p->[1] eq lc($p->[2]) && $p->[3] eq '' ); # FIXME hosts?
 		print "$name ", join(' | ', @$p ), "\n";
+		print $n_fh "$name\t", join("\t", @$p ), "\n";
 	}
 }
 
@@ -177,5 +180,6 @@ foreach my $file ( glob('../mikrotik-switch/out/*neighbor*'), glob('../tilera/ou
 		( $v[1], $v[3] ) = mac2name( $v[1], $v[3] );
 
 		print "$name ", join(' | ', @v), $/;
+		print $n_fh "$name\t", join("\t", @v ), "\n";
 	}
 }
