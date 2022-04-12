@@ -5,6 +5,8 @@ use autodie;
 
 # ./sw-name-mac.sh
 
+# usage: NAME_MAC=/dev/shm/file-with-name-space-mac sbw-parse.pl [optional-switch-snmpbulkwalk-dump]
+
 use Data::Dump qw(dump);
 
 my $debug = $ENV{DEBUG} || 0;
@@ -13,13 +15,16 @@ my @cols = qw( ifName ifHighSpeed ifAdminStatus ifOperStatus ifType dot1dStpPort
 
 my $mac2name;
 
-open(my $f, '<'. '/dev/shm/sw-name-mac');
-while(<$f>) {
-	chomp;
-	#my ( $ip, $name, $mac ) = split(/ /,$_);
-	my ( $name, $mac ) = split(/ /,$_);
-	$mac = lc($mac);
-	$mac2name->{$mac} = $name;
+foreach my $name_mac ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC} ) {
+	next unless -e $name_mac;
+	open(my $f, '<'. $name_mac);
+	while(<$f>) {
+		chomp;
+		#my ( $ip, $name, $mac ) = split(/ /,$_);
+		my ( $name, $mac ) = split(/ /,$_);
+		$mac = lc($mac);
+		$mac2name->{$mac} = $name;
+	}
 }
 
 sub mac2name {
