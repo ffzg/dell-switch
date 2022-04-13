@@ -204,8 +204,51 @@ while(<$n_fh>) {
 	$sw1 = fix_sw_name($sw1);
 	my $port1_nr = port2number( $sw1, $port1 );
 	my $port2_nr = port2number( $sw2, $port2 );
+	next unless $sw->{$sw1}->{ifType}->[$port1_nr] eq 'ethernetCsmacd';
 	$gv->{$sw1}->{$port1_nr}->{$sw2}->{$port2_nr} = [ $port1, $port2 ];
 	delete $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'} if exists $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'};
 }
 
 print "# gv = ",dump( $gv );
+
+open(my $dot_fh, '>', '/tmp/network.dot');
+print $dot_fh qq|
+digraph topology {
+graph [ rankdir = LR ]
+node [ shape = record ]
+edge [ color = "gray" ]
+|;
+
+my @edges;
+my $node;
+
+foreach my $sw1 ( sort keys %$gv ) {
+	foreach my $p1 ( sort { $a <=> $b } keys %{ $gv->{$sw1} } ) {
+		foreach my $sw2 ( sort keys %{ $gv->{$sw1}->{$p1} } ) {
+			push @{ $node->{$sw1} }, [ $p1, $sw2 ];
+			foreach my $p2 ( keys %{ $gv->{$sw1}->{$p1}->{$sw2} } ) {
+				push @edges, [ $sw1, $sw2, $p1, $p2 ];
+				#push @{ $node->{$sw2} }, [ $p2, $sw1 ];
+			}
+		}
+	}
+}
+
+foreach my $n ( keys %$node ) {
+	no warnings;
+	my @port_sw =
+		sort { $a->[0] <=> $b->[0] }
+		@{ $node->{$n} };
+	print $dot_fh qq!"$n" [ label="!.uc($n).'|' . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
+}
+
+foreach my $e ( @edges ) {
+	no warnings;
+	print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
+}
+
+print $dot_fh qq|
+}
+|;
+
+system "dot -Tsvg /tmp/network.dot > /var/www/network.svg";
