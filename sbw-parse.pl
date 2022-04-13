@@ -9,6 +9,8 @@ use autodie;
 
 use Data::Dump qw(dump);
 
+$|=1; # flush stdout
+
 my $debug = $ENV{DEBUG} || 0;
 
 my @cols = qw( ifName ifHighSpeed ifAdminStatus ifOperStatus ifType dot1dStpPortPathCost ifAlias );
@@ -204,7 +206,15 @@ while(<$n_fh>) {
 	$sw1 = fix_sw_name($sw1);
 	my $port1_nr = port2number( $sw1, $port1 );
 	my $port2_nr = port2number( $sw2, $port2 );
-	next unless $sw->{$sw1}->{ifType}->[$port1_nr] eq 'ethernetCsmacd';
+
+	if ( $sw->{$sw1}->{ifType}->[$port1_nr] ne 'ethernetCsmacd' ) {
+		warn "SKIP $sw1 $port1_nr $sw->{$sw1}->{ifType}->[$port1_nr]\n";
+		next;
+	} elsif ( $port1 =~ m{bridge} ) { # skip mikrotik bridges
+#		warn "SKIP $sw1 $port1_nr $port1\n";
+#		next;
+	}
+
 	$gv->{$sw1}->{$port1_nr}->{$sw2}->{$port2_nr} = [ $port1, $port2 ];
 	delete $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'} if exists $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'};
 }
@@ -225,6 +235,10 @@ my $node;
 foreach my $sw1 ( sort keys %$gv ) {
 	foreach my $p1 ( sort { $a <=> $b } keys %{ $gv->{$sw1} } ) {
 		foreach my $sw2 ( sort keys %{ $gv->{$sw1}->{$p1} } ) {
+			if ( $sw1 eq $sw2 ) {
+				warn "SKIP same switch $sw1 == $sw2\n";
+				next;
+			}
 			push @{ $node->{$sw1} }, [ $p1, $sw2 ];
 			foreach my $p2 ( keys %{ $gv->{$sw1}->{$p1}->{$sw2} } ) {
 				push @edges, [ $sw1, $sw2, $p1, $p2 ];
