@@ -171,8 +171,15 @@ sub port2number {
 	}
 
 	# gigabitethernet1/0/45 or gi1/0/45
-	if ( $port =~ m{1/0/(\d+)$} ) {
-		return $1;
+	if ( $port =~ m{(.+)1/0/(\d+)$} ) {
+		my ($type,$port) = ($1,$2);
+		if ( $type =~ m{gi}i ) {
+			return $port;
+		} elsif ( $type =~ m{te}i ) {
+			return $port <= 4 ? $port + 10000 : $port;
+		} else {
+			die "unknown [$type]";
+		}
 	}
 
 	# linux
