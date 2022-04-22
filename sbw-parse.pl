@@ -262,10 +262,11 @@ foreach my $sw1 ( sort keys %$gv ) {
 				warn "SKIP same switch $sw1 == $sw2\n";
 				next;
 			}
-			push @{ $node->{$sw1} }, [ $p1, $sw2 ];
+			#push @{ $node->{$sw1} }, [ $p1, $sw2 ];
 			foreach my $p2 ( keys %{ $gv->{$sw1}->{$p1}->{$sw2} } ) {
 				push @edges, [ $sw1, $sw2, $p1, $p2 ];
-				#push @{ $node->{$sw2} }, [ $p2, $sw1 ];
+				##push @{ $node->{$sw2} }, [ $p2, $sw1 ];
+				push @{ $node->{$sw1} }, [ $p1, $sw2, $p2 ];
 			}
 		}
 	}
@@ -276,7 +277,9 @@ foreach my $n ( keys %$node ) {
 	my @port_sw =
 		sort { $a->[0] <=> $b->[0] }
 		@{ $node->{$n} };
-	print $dot_fh qq!"$n" [ label="!.uc($n).'|' . join('|', map { sprintf "<%d>%2d %s", $_->[0], $_->[0], $_->[1] } @port_sw ) . qq!" ];\n!;
+	print $dot_fh qq!"$n" [ label="!.uc($n).'|' . join('|', map {
+		sprintf "<%d>%2d %s%s", $_->[0], $_->[0], $_->[1], $_->[2] eq 'no_port' ? '' : ' ' . $_->[2]
+	} @port_sw ) . qq!" ];\n!;
 }
 
 foreach my $e ( @edges ) {
