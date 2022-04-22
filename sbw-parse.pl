@@ -219,6 +219,22 @@ while(<$n_fh>) {
 	delete $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'} if exists $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'};
 }
 
+# FIXME sw-b101 doesn't have lldp so we insert data here manually from pictures
+sub fake_gv {
+	my ($sw1, $p1, $sw2, $p2) = @_;
+	$gv->{$sw1}->{$p1}->{$sw2}->{$p2} = [ $p1, $p2 ];
+	$gv->{$sw2}->{$p2}->{$sw1}->{$p1} = [ $p2, $p1 ];
+}
+delete $gv->{'sw-b101'};
+fake_gv( 'sw-b101' => 3, 'sw-b101' => 4 ); # vlan1-to-vlan2 / vlan2-to-vlan1
+
+fake_gv( 'sw-b101' => 21, 'sw-rack2' => 50 );
+fake_gv( 'sw-b101' => 23, 'sw-lib-srv' => 48 );
+fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
+
+#delete $gv->{'sw-ganeti'};
+# spf-16 -> "sw-rack2"        => { 2 => ["16-sfp-uplink-b101,bridge", "te1/0/2"] },
+
 print "# gv = ",dump( $gv );
 
 open(my $dot_fh, '>', '/tmp/network.dot');
