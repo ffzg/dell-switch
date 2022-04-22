@@ -1,5 +1,10 @@
 #!/bin/sh -e
 
+if [ -z "$1" ] ; then
+	./sw-names | xargs -i $0 {}
+	exit 0
+fi
+
 sw=$1
 
 config=$( basename $0 | sed -e 's/^sw-//' -e 's/.sh$//' )
