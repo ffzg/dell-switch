@@ -2,5 +2,5 @@ echo "All fans breakdown by status:"
 grep Fan log/*system* | cut -d: -f3 | sort | uniq -c
 echo
 echo "Failing fans:"
-grep -B 15 'NOT' log/*system* | egrep '(NOT|Description|Type)' | grep -v -- -Type: | sed -e 's/^[^_]*_//' -e 's/_[^-:]*[-:]/ /'
+grep -B 15 'NOT' log/*system* | egrep '(NOT|Description|Type)' | grep -v -- '-Type: *Ethernet Switch' | sed -e 's/^[^_]*_//' -e 's/_[^-:]*[-:]/ /'
 
