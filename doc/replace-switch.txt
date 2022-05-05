@@ -1,0 +1,20 @@
+# connect using serial cable
+
+dpavlin@slin:~$ sudo microcom -p /dev/ttyUSB0 -s 9600
+
+# reset current switch config
+
+rack3-lib> enable
+
+rack3-lib# delete startup-config
+Delete startup-config [y/n]? y
+
+01-Jan-2000 01:08:53 %FILE-I-DELETE: File Delete - file URL flash://startup-config
+
+rack3-lib# reload
+
+You haven't saved your changes. Are you sure you want to continue ? (Y/N)[N] Y
+This command will reset the whole system and disconnect your current session. Do you want to continue ? (Y/N)[N] Y
+Shutting down ...
+
+
