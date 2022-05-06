@@ -17,4 +17,34 @@ You haven't saved your changes. Are you sure you want to continue ? (Y/N)[N] Y
 This command will reset the whole system and disconnect your current session. Do you want to continue ? (Y/N)[N] Y
 Shutting down ...
 
+# ater reboot
+
+console> enable
+
+console# configure
+console(config)#
+
+copy/paste configuration with appropriate changes
+
+# disable iscsi
+
+sw-c200# show iscsi
+
+iSCSI enabled
+iSCSI vpt is 5, Remark
+iSCSI aging time: 5 min.
+
+sw-c200# config
+sw-c200(config)# no iscsi enable
+sw-c200(config)# exit
+sw-c200# show iscsi
+
+iSCSI disabled
+
+sw-c200# copy running-config startup-config
+Overwrite file [startup-config] ?[Yes/press any key for no]....
+01-Jan-2000 00:50:39 %COPY-I-FILECPY: Files Copy - source URL running-config destination URL flash://startup-config
+01-Jan-2000 00:50:45 %COPY-N-TRAP: The copy operation was completed successfully
+Copy succeeded
+
 
