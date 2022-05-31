@@ -132,6 +132,8 @@ while() {
 		send_pty " ";
 	} elsif ( $buff =~ s{\Q--More-- or (q)uit\E}{} ) {
 		send_pty " ";
+	} elsif ( $buff =~ s{\r\s{18}\r}{} ) {
+		# strip spaces delete after more prompt
 	} elsif ( $buff =~ s{\e\[0m\s*\r\s+\r}{} ) {
 		# nop
 	} elsif ( $buff =~ m/^[\r\n]+[\w\-]+>$/ ) {
