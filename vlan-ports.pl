@@ -6,19 +6,37 @@ use Data::Dump qw(dump);
 
 # ./vlan-ports.pl ./log/*sw-{dpc,e300}*vlan* | less
 
+my $debug = $ENV{DEBUG} || 1;
+
 my @logs = @ARGV;
+@logs = glob('./log/*vlan*') unless @logs;
 
 my $stat;
 
 foreach my $log ( @logs ) {
-	open(my $log_fh, '<', $log);
+	warn "###< $log\n" if $debug;
+	open(my $log_fh, '-|', "./table2tab.pl '$log'");
 	my $sw = $log; $sw =~ s/^.*?_//; $sw =~ s/_.*$//;
 	while(<$log_fh>) {
 		chomp;
-		if ( m/\s*(\d+)\s+(\S+)\s+([gc]\S+)\s+(\w+)\s+(\w+)/ ) {
-			my ($vlan,$name,$ports,$type,$authorization) = ( $1,$2,$3,$4,$5 );
+		if ( m/\t/ ) {
+			my ($vlan,$name,$ports,$type,$authorization);
 
-			warn "$sw $vlan $name $ports $type $authorization\n";
+			my @v = split(/\t/, $_);
+
+			if ( $#v == 4 ) {
+				($vlan,$name,$ports,$type,$authorization) = @v;
+			} elsif ( $#v == 3 ) {
+				($vlan,$name,$ports,$type) = @v;
+			} elsif ( $#v == 5 ) {
+				($vlan,$name,$ports,undef,$type) = @v;
+			} else {
+				warn "ERROR: ", scalar(@v), " elements in [$_]" if $#v != 4;
+			}
+
+			$ports =~ s{(Po|Gi\d/\d/|Te\d/\d/)}{}gi;
+
+			warn "$sw $vlan $name $ports $type\n";
 			$stat->{$sw}->{_vlan_count}->{$vlan}++;
 
 			while ( $ports =~ s/(ch\([^\)]+\))// ) {
@@ -38,7 +56,7 @@ foreach my $log ( @logs ) {
 			}
 			#warn "# ports left:[$ports] stat = ",dump($stat);
 		} else {
-			warn "INGORED [$_]";
+			warn "INGORED [$_]\n";
 		}
 	}
 }
@@ -53,7 +71,7 @@ foreach my $sw ( sort keys %$stat ) {
 	foreach my $vlan ( sort { $a <=> $b } keys %{ $stat->{$sw}->{vlan_port} } ) {
 		my @p = ( '.' ) x ( $ports[-1] + 1 );
 		foreach my $port ( @{ $stat->{$sw}->{vlan_port}->{$vlan} } ) {
-			$p[$port] = 'X';
+			$p[$port] = $port;
 		}
 		shift @p; # skip port 0
 		#warn "# $sw $vlan p = ",dump( \@p );
