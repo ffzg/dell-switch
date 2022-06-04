@@ -104,11 +104,16 @@ foreach my $file ( @files ) {
 			$sw->{$name}->{$1}->[$2] = $3;
 			if ( $1 eq 'ifName' ) {
 				my ( $if_name, $port ) = ($3,$2);
-				$sw->{$name}->{port_name_to_number}->{$3} = $2;
+				$sw->{$name}->{port_name_to_number}->{$if_name} = $port;
 			}
 			if ( $1 eq 'ifDescr' ) { # some switches miss ifName
 				my ( $if_name, $port ) = ($3,$2);
-				$sw->{$name}->{port_name_to_number}->{$3} = $2 if ( ! exists $sw->{$name}->{port_name_to_number}->{$3} );
+				$if_name =~ s/gigabitethernet/ge/;
+				$if_name =~ s/tengigabitethernet/te/;
+				$sw->{$name}->{'ifName'}->[$port] = $if_name
+					if ( ! exists $sw->{name}->{'ifName'} );
+				$sw->{$name}->{port_name_to_number}->{$if_name} = $port 
+					if ( ! exists $sw->{$name}->{port_name_to_number}->{$if_name} );
 			}
 		} elsif ( m/::(ifAdminStatus|ifOperStatus|ifType|dot3StatsDuplexStatus)\[(\d\d?)\] = INTEGER: (\w+)\(/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
@@ -139,10 +144,6 @@ foreach my $file ( @files ) {
 	foreach my $port ( 1 .. $#{ $sw->{$name}->{ifDescr} } ) {
 		print "$name $port";
 		foreach my $oid ( @cols ) {
-			if ( $oid eq 'ifName' && ! exists $sw->{$name}->{$oid} ) {
-				# Dell PowerConnect 5548 doeesn't have ifName
-				$oid = 'ifDescr';
-			}
 			if ( $oid eq 'ifAlias' ) {
 				if ( defined( $sw->{$name}->{$oid}->[$port] ) ) {
 					print " [",$sw->{$name}->{$oid}->[$port],"]";
