@@ -92,15 +92,23 @@ foreach my $file ( @files ) {
 		if ( m/::(sysName|sysLocation|ipDefaultTTL|dot1dStpPriority|dot1dStpTopChanges|dot1dStpDesignatedRoot|dot1dStpRootCost|dot1dStpRootPort|dot1qNumVlans)\./ ) {
 			my ( undef, $v ) = split(/ = \w+: /,$_,2);
 			$sw->{$name}->{$1} = $v;
-		} elsif ( m/::(ifMtu|ifHighSpeed)\[(\d\d?)\] = (?:INTEGER|Gauge32): (\d+)/ ) {
+		} elsif ( m/::(ifMtu|ifHighSpeed|ifSpeed)\[(\d\d?)\] = (?:INTEGER|Gauge32): (\d+)/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
+			# Dell PowerConnect 5548 doeesn't have ifHighSpeed
+			if ( $1 eq 'ifSpeed' && ! exists $sw->{$name}->{'ifHighSpeed'}->[$2] ) {
+				$sw->{$name}->{'ifHighSpeed'}->[$2] = $3 / 1_000_000;
+			}
 		} elsif ( m/::(ifPhysAddress)\[(\d\d?)\] = STRING: ([0-9a-f:]+)/ ) {
 			$sw->{$name}->{$1}->[$2] = fix_mac($3);
-		} elsif ( m/::(ifName|ifAlias)\[(\d\d?)\] = STRING: (.+)/ ) {
+		} elsif ( m/::(ifDescr|ifName|ifAlias)\[(\d\d?)\] = STRING: (.+)/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
 			if ( $1 eq 'ifName' ) {
 				my ( $if_name, $port ) = ($3,$2);
 				$sw->{$name}->{port_name_to_number}->{$3} = $2;
+			}
+			if ( $1 eq 'ifDescr' ) { # some switches miss ifName
+				my ( $if_name, $port ) = ($3,$2);
+				$sw->{$name}->{port_name_to_number}->{$3} = $2 if ( ! exists $sw->{$name}->{port_name_to_number}->{$3} );
 			}
 		} elsif ( m/::(ifAdminStatus|ifOperStatus|ifType|dot3StatsDuplexStatus)\[(\d\d?)\] = INTEGER: (\w+)\(/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
@@ -128,9 +136,13 @@ foreach my $file ( @files ) {
 	}
 	warn "# sw $name = ",dump($sw->{$name}) if $debug;
 
-	foreach my $port ( 1 .. $#{ $sw->{$name}->{ifName} } ) {
+	foreach my $port ( 1 .. $#{ $sw->{$name}->{ifDescr} } ) {
 		print "$name $port";
 		foreach my $oid ( @cols ) {
+			if ( $oid eq 'ifName' && ! exists $sw->{$name}->{$oid} ) {
+				# Dell PowerConnect 5548 doeesn't have ifName
+				$oid = 'ifDescr';
+			}
 			if ( $oid eq 'ifAlias' ) {
 				if ( defined( $sw->{$name}->{$oid}->[$port] ) ) {
 					print " [",$sw->{$name}->{$oid}->[$port],"]";
