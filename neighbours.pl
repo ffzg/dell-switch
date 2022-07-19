@@ -5,6 +5,7 @@ use autodie;
 
 # ./sw-name-mac.sh
 # ./sw-names | xargs -i ./dell-switch.pl {} 'show lldp neighbors'
+# /home/dpavlin/mikrotik-switch/m-neighbour
 
 use Data::Dump qw(dump);
 
