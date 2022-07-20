@@ -1,0 +1,132 @@
+# Dell N1148T-ON
+
+https://www.dell.com/support/home/en-hr/product-support/product/networking-n1100-series/docs
+
+rack-2#show version
+
+Machine Description............... Dell EMC Networking Switch
+System Model ID................... N1148T-ON
+Machine Type...................... Dell EMC Networking N1148T-ON
+Serial Number..................... CN0386WH2829883B0257
+Manufacturer...................... 0xbc00
+Burned In MAC Address............. E4F0.04A6.07C5
+System Object ID.................. 1.3.6.1.4.1.674.10895.3082
+SOC Version....................... BCM53440_B0
+HW Version........................ 4
+CPLD Version...................... 7
+
+unit active      backup      current-active next-active
+---- ----------- ----------- -------------- --------------
+1    6.4.1.4     6.4.1.4     6.4.1.4        6.4.1.4
+
+
+# disable talk home
+
+rack-2#configure
+rack-2(config)#eula-consent support-assist reject
+
+
+# enable password
+
+rack-2#configure 
+
+rack-2(config)#enable password XXXXXXXX 
+
+rack-2(config)#exit
+
+rack-2#copy running-config startup-config 
+
+
+
+
+# use test IP
+
+dpavlin@dns01:/etc/bind$ host sw-test.infosl
+sw-test.infosl has address 10.20.0.73
+
+rack-2(config)#interface vlan 20
+
+rack-2(config-if-vlan20)#ip address 10.20.0.73 255.255.255.0
+
+rack-2(config-if-vlan20)#do copy running-config startup-config 
+
+
+# copy update to tftp
+
+dpavlin@slin:/mnt/siobhan/home/dpavlin/Dell-N1100/N1100v6.6.3.17.A11$ scp N1100v6.6.3.17.stk black.ffzg.hr:dell-switch/running-config/
+
+(yes, tftp on black is in strange directory to backup config files)
+
+
+## copy file to switch
+
+rack-2#copy tftp://10.20.0.216/N1100v6.6.3.17.stk backup
+
+
+
+
+Transfer Mode.................................. TFTP  
+Server IP Address.............................. 10.20.0.216
+Source File Path............................... ./
+Source Filename................................ N1100v6.6.3.17.stk
+Data Type...................................... Code            
+Destination Filename........................... backup
+
+Management access will be blocked for the duration of the transfer
+Are you sure you want to start? (y/n) y
+
+File transfer in progress. Management access will be blocked for the duration of the transfer. please wait...
+
+
+TFTP Code transfer starting...
+
+30960242 bytes transferred   
+
+File contents are valid. Copying file to flash...
+
+Attempting to send the STK file to other units in the stack...
+
+
+File transfer operation completed successfully.
+
+
+## activate new firmware
+
+rack-2#boot system backup
+Activating image backup ..
+
+rack-2#reload
+
+## check new version
+
+rack-2>enable
+Password:********
+
+rack-2#show version 
+
+Machine Description............... Dell EMC Networking Switch
+System Model ID................... N1148T-ON
+Machine Type...................... Dell EMC Networking N1148T-ON
+Serial Number..................... CN0386WH2829883B0257
+Manufacturer...................... 0xbc00
+Burned In MAC Address............. E4F0.04A6.07C5
+System Object ID.................. 1.3.6.1.4.1.674.10895.3082
+SOC Version....................... BCM53440_B0
+HW Version........................ 4
+CPLD Version...................... 7
+Image File........................ N1100v6.6.3.17
+Software Capability............... Stack Limit = 4, VLAN Limit = 512
+
+unit active      backup      current-active next-active
+---- ----------- ----------- -------------- --------------
+1    6.6.3.17    6.4.1.4     6.6.3.17       6.6.3.17
+
+
+## reject hive agent
+
+rack-2#configure 
+
+rack-2(config)#eula-consent hiveagent reject
+
+
+
