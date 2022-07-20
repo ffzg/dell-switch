@@ -127,4 +127,33 @@ rack-2#configure
 rack-2(config)#eula-consent hiveagent reject
 
 
+# if this is new switch, there are more housekeeping teasks
 
+## create user which can connect to switch
+
+rack-2(config)#username admin password XXXXXXXX privilege 15
+
+rack-2(config)#crypto key generate rsa 
+
+RSA key generation started, this may take a few minutes.....
+RSA key generation complete.
+
+rack-2(config)#crypto key generate dsa 
+
+DSA key generation started, this may take a few minutes....
+DSA key generation complete.
+
+rack-2(config)#ip ssh server
+
+rack-2(config)#hostname sw-rack2
+
+
+sntp unicast client enable
+sntp server 10.20.0.216
+
+snmp-server location "a125b"
+snmp-server contact "admin@ffzg.hr"
+
+snmp-server group "XXXXXXXXXXXXXXXXXXX" v1 read "Default"
+snmp-server group "XXXXXXXXXXXXXXXXXXX" v2 read "Default"
+snmp-server community "XXXXXXXXXXXXXXXXXXX" ro
