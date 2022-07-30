@@ -7,3 +7,5 @@ grep IF-MIB::ifPhysAddress snmpbulkwalk/* | sed -e 's/\// /' -e 's/:/ /' | cut -
 -e 's/:\([0-9a-f]\):/:0\1:/gi' \
 -e 's/:\([0-9a-f]\):/:0\1:/gi' \
 -e 's/:\([0-9a-f]\)$/:0\1/i' | tee /dev/shm/sw-name-mac
+
+git -C /dev/shm commit -m $( date +%Y-%m-%d ) -a
