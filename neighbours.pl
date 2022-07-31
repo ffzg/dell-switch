@@ -19,7 +19,13 @@ while(<$f>) {
 	#my ( $ip, $name, $mac ) = split(/ /,$_);
 	my ( $name, $mac ) = split(/ /,$_);
 	$mac = lc($mac);
-	$mac2name->{$mac} = $name;
+	if ( defined $mac2name->{$mac} ) {
+		if ( $mac2name->{$mac} ne $name ) {
+			warn "ERROR: GOT $mac with $mac2name->{$mac} and now trying to overwrite it with $name\n";
+		}
+	} else {
+		$mac2name->{$mac} = $name;
+	}
 }
 
 sub mac2name {
