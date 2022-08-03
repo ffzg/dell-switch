@@ -6,6 +6,9 @@ use autodie;
 # ./sw-name-mac.sh
 
 # usage: NAME_MAC=/dev/shm/file-with-name-space-mac sbw-parse.pl [optional-switch-snmpbulkwalk-dump]
+#  
+# cat /dev/shm/neighbors.tab | grep MikroTik | tee /dev/stderr | awk '{ print $7 "_" $8 " " $3 }' > /tmp/name-mac
+# NAME_MAC=/tmp/name-mac ./sbw-parse.pl
 
 use Data::Dump qw(dump);
 
