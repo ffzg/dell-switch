@@ -99,7 +99,8 @@ while() {
 	} elsif ( $buff =~ m/Password:/ ) {
 		send_pty "$passwd\n";
 		$buff = '';
-	} elsif ( $buff =~ m/[\n\r\b]([\w\-\(\)]+)#\s*$/ ) {
+	} elsif ( $buff =~ m/[\n\r\b]([\w\-\(\)\/]+)#\s*$/ ) {
+		# config interface needs / in prompt
 		my $hostname = $1;
 		if ( $buff ) {
 			save_log $ip, $hostname, $command, $buff;
