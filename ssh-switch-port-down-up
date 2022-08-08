@@ -1,0 +1,8 @@
+#!/bin/sh -xe
+
+sw=$1
+if=$2
+
+ethernet_if=$( echo $if | sed -e 's/^g/ethernet g/' -e 's/^Gi/Gigabitethernet /' )
+
+NO_LOG=1 ./dell-switch.pl $sw 'configure' "interface $ethernet_if" "shutdown" "no shutdown" 'exit' 'exit'
