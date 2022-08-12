@@ -1,0 +1,208 @@
+# Dell X1052
+
+https://www.dell.com/support/home/en-us/product-support/product/networking-x1000-series/drivers
+
+sw-b000-2#show version
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+dpavlin@black:~/Dell-X1052$ wget https://dl.dell.com/FOLDER07885413M/1/x10xx-3019.zip
+
+dpavlin@black:~/Dell-X1052$ unzip x10xx-3019.zip
+
+## check which switches are this version
+
+dpavlin@black:~/dell-switch$ git -C out/ grep X1052 | cut -d_ -f2 | sort -u
+sw-b000-2
+sw-b100-2
+sw-b200-2
+sw-c300-2
+sw-fond
+
+dpavlin@black:~/dell-switch$ git -C out/ grep X1052 | cut -d_ -f2 | sort -u | xargs -i ./dell-switch.pl {} 'show version'
+
+## ssh 10.20.0.60
+
+sw-b000-2#show version
+
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+## ssh 10.20.0.61
+
+sw-b100-2#show version
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+## ssh 10.20.0.62
+
+sw-b200-2#show version
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+## ssh 10.20.0.65
+
+sw-c300-2#show version
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+## ssh 10.20.0.24
+
+sw-fond#show version
+SW version    3.0.1.2 ( date  26-May-2019 time  16:24:43 )
+Boot version    1.0.0.25 ( date  05-Apr-2017 time  09:55:19 )
+HW version    00.00.04
+
+
+
+
+dpavlin@black:~/Dell-X1052$ unzip x10xx-3019.zip
+Archive:  x10xx-3019.zip
+replace x10xx-3019/Dell_X1000-X4000_Series_UG.pdf? [y]es, [n]o, [A]ll, [N]one, [r]ename: A
+  inflating: x10xx-3019/Dell_X1000-X4000_Series_UG.pdf
+  inflating: x10xx-3019/MIBs.zip
+  inflating: x10xx-3019/MicroUSB-FTDI2.12.00WindowsDrivers.zip
+  inflating: x10xx-3019/X1000 Series and X4012 Release Notes 3.0.1.9.pdf
+  inflating: x10xx-3019/x10xx-3019.ros
+  inflating: x10xx-3019/x10xx_boot-10025.rfb
+  inflating: x10xx-3019/X10xx_X4012_CLI_Software_Upgrade_Instructions.pdf	# XXX read this file
+  inflating: x10xx-3019/X10xx_X4012_GUI_Software_Upgrade_Instructions.pdf
+
+- HW version update to 00.00.04 doesn't require 10-15 minutes to update CPLD
+
+copy tftp://10.20.0.216/x10xx-3019.ros image
+copy tftp://10.20.0.216/x10xx_boot-10025.rfb boot
+show bootvar
+reload
+
+dpavlin@black:~/dell-switch$ sh x1052.sh | xargs -i ./dell-switch.pl {} 'show bootvar'
+
+dpavlin@black:~/dell-switch$ grep . out/*bootvar* | sed -e 's/^[^_]*_//' -e 's/_[^:]*:/   /'
+sw-fond   Image  Filename   Version     Date                    Status
+sw-fond   -----  ---------  ---------   ---------------------   -----------
+sw-fond   1      image-1    3.0.0.82    03-Nov-2016  17:20:11   Not active
+sw-fond   2      image-2    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-fond   "*" designates that the image was selected for the next boot
+sw-fond   sw-fond#
+sw-b000-2   Image  Filename   Version     Date                    Status
+sw-b000-2   -----  ---------  ---------   ---------------------   -----------
+sw-b000-2   1      image-1    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b000-2   2      image-2    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b000-2   "*" designates that the image was selected for the next boot
+sw-b000-2   sw-b000-2#
+sw-b100-2   Image  Filename   Version     Date                    Status
+sw-b100-2   -----  ---------  ---------   ---------------------   -----------
+sw-b100-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b100-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b100-2   "*" designates that the image was selected for the next boot
+sw-b100-2   sw-b100-2#
+sw-b200-2   Image  Filename   Version     Date                    Status
+sw-b200-2   -----  ---------  ---------   ---------------------   -----------
+sw-b200-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b200-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b200-2   "*" designates that the image was selected for the next boot
+sw-b200-2   sw-b200-2#
+sw-c300-2   Image  Filename   Version     Date                    Status
+sw-c300-2   -----  ---------  ---------   ---------------------   -----------
+sw-c300-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-c300-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-c300-2   "*" designates that the image was selected for the next boot
+sw-c300-2   sw-c300-2#
+d
+
+dpavlin@black:~/dell-switch$ sh x1052.sh | xargs -i ./dell-switch.pl {} 'show bootvar'
+
+dpavlin@black:~/dell-switch$ grep . out/*bootvar* | sed -e 's/^[^_]*_//' -e 's/_[^:]*:/   /'
+sw-fond   Image  Filename   Version     Date                    Status
+sw-fond   -----  ---------  ---------   ---------------------   -----------
+sw-fond   1      image-1    3.0.0.82    03-Nov-2016  17:20:11   Not active
+sw-fond   2      image-2    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-fond   "*" designates that the image was selected for the next boot
+sw-fond   sw-fond#
+sw-b000-2   Image  Filename   Version     Date                    Status
+sw-b000-2   -----  ---------  ---------   ---------------------   -----------
+sw-b000-2   1      image-1    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b000-2   2      image-2    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b000-2   "*" designates that the image was selected for the next boot
+sw-b000-2   sw-b000-2#
+sw-b100-2   Image  Filename   Version     Date                    Status
+sw-b100-2   -----  ---------  ---------   ---------------------   -----------
+sw-b100-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b100-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b100-2   "*" designates that the image was selected for the next boot
+sw-b100-2   sw-b100-2#
+sw-b200-2   Image  Filename   Version     Date                    Status
+sw-b200-2   -----  ---------  ---------   ---------------------   -----------
+sw-b200-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-b200-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-b200-2   "*" designates that the image was selected for the next boot
+sw-b200-2   sw-b200-2#
+sw-c300-2   Image  Filename   Version     Date                    Status
+sw-c300-2   -----  ---------  ---------   ---------------------   -----------
+sw-c300-2   1      image-1    3.0.1.2     26-May-2019  16:25:00   Active*
+sw-c300-2   2      image-2    3.0.0.95    24-Dec-2017  17:48:44   Not active
+sw-c300-2   "*" designates that the image was selected for the next boot
+sw-c300-2   sw-c300-2#
+
+
+
+dpavlin@black:~/Dell-X1052$ cp -pv x10xx-3019/x10xx-3019.ros ~/dell-switch/running-config/
+'x10xx-3019/x10xx-3019.ros' -> '/home/dpavlin/dell-switch/running-config/x10xx-3019.ros'
+You have new mail in /var/mail/dpavlin
+dpavlin@black:~/Dell-X1052$ cp -pv x10xx-3019/x10xx_boot-10025.rfb ~/dell-switch/running-config/
+'x10xx-3019/x10xx_boot-10025.rfb' -> '/home/dpavlin/dell-switch/running-config/x10xx_boot-10025.rfb'
+
+
+
+dpavlin@black:~/dell-switch$ ./ssh.sh sw-b000-2
+
+
+
+
+User Name:admin
+Password:********
+
+
+sw-b000-2#
+sw-b000-2#show bootvar
+Image  Filename   Version     Date                    Status
+-----  ---------  ---------   ---------------------   -----------
+1      image-1    3.0.0.95    24-Dec-2017  17:48:44   Not active
+2      image-2    3.0.1.2     26-May-2019  16:25:00   Active*
+
+"*" designates that the image was selected for the next boot
+
+sw-b000-2#copy tftp://10.20.0.216/x10xx-3019.ros image
+12-Aug-2022 18:07:37 %COPY-I-FILECPY: Files Copy - source URL tftp://10.20.0.216/x10xx-3019.ros destination URL flash://image
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!12-Aug-2022 18:10:18 %COPY-N-TRAP: The copy operation was completed successfully
+!
+Copy: 11506394 bytes copied in 00:02:41 [hh:mm:ss]
+
+sw-b000-2#copy tftp://10.20.0.216/x10xx_boot-10025.rfb boot
+12-Aug-2022 18:11:02 %COPY-I-FILECPY: Files Copy - source URL tftp://10.20.0.216/x10xx_boot-10025.rfb destination URL flash://BOOT
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!12-Aug-2022 18:11:09 %COPY-N-TRAP: The copy operation was completed successfully
+!
+Copy: 524304 bytes copied in 00:00:07 [hh:mm:ss]
+
+sw-b000-2#show bootvar
+Image  Filename   Version     Date                    Status
+-----  ---------  ---------   ---------------------   -----------
+1      image-1    3.0.1.9     12-Oct-2021  11:42:18   Not active*
+2      image-2    3.0.1.2     26-May-2019  16:25:00   Active
+
+"*" designates that the image was selected for the next boot
+
+sw-b000-2#reload
+This command will reset the whole system and disconnect your current session. Do you want to continue ? (Y/N)[N] Y
+Shutting down ...
+Shutting down ...
+Shutting down ...
+
+# cca 190 sec to reboot
+
+
