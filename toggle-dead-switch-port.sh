@@ -29,9 +29,15 @@ m=/home/dpavlin/mikrotik-switch
 	#echo "/interface ethernet print where comment=\"$sw\""
 	#echo "/interface ethernet disable"
 	#echo ~/mikrotik-switch/m-ssh $on_sw
-	$m/m-ssh-out $on_sw '/interface ethernet print' | grep -A 1 $sw
-
-	exit 0
+	#$m/m-ssh-out $on_sw '/interface ethernet print' | grep -A 1 $sw
+	port_nr=$( grep $sw ../mikrotik-switch/out/$on_sw*ethernet*print | awk '{ print $1 }' )
+	$m/m-ssh $on_sw "/interface ethernet disable $port_nr"
+	sleep 5
+	$m/m-ssh $on_sw "/interface ethernet enable $port_nr"
+	echo "XXX if ping $sw doesn't work, try"
+	echo "XXX $m/m-ssh $on_sw '/interface bridge port set 2 edge=yes'"
+	echo "XXX ./ssh.sh $sw # show spanning-tree active # and fix it"
+	echo "XXX $m/m-ssh $on_sw '/interface bridge port set 2 edge=auto'"
 done
 
 
