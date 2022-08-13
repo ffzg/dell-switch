@@ -7,6 +7,7 @@ find log -name '*active*' -ctime +1  | cut -d_ -f2 | while read sw ; do
 	echo -n '.'
 done
 
+(
 
 #git -C out grep STP | grep -v RSTP | grep 'spanning-tree active' | sed -e 's/_/ /g'  | awk '{ print $2" .*"$6 }' > /tmp/st.1.patt
 
@@ -22,3 +23,6 @@ git -C out grep -A 4 'Root ID' '*active*' | grep Address | sed 's/_/ /g' | awk '
 echo "# STP only (RSTP ignored) -- should be empty if OK"
 git -C out grep STP | grep -v RSTP | grep 'spanning-tree active' | tee /tmp/st.2.full | sed -e 's/_/ /g'  | awk '{ print $6"\t"$2"[ \t$]" }' > /tmp/st.2.patt
 grep -f /tmp/st.2.patt /dev/shm/neighbors.tab | column -t
+
+) | tee /dev/shm/$( basename $0 ).out
+git commit -m "$( date +%Y-%m-%d ) $( basename $0 )" /dev/shm/$( basename $0 ).out
