@@ -3,6 +3,7 @@ use warnings;
 use strict;
 use autodie;
 use Data::Dump qw(dump);
+use Carp;
 
 my @repos = qw(
 /home/dpavlin/dell-switch/running-config/
@@ -24,7 +25,7 @@ my $date_commit;
 sub get_commit {
 	my $repo = shift;
 	my $r = $fh->{$repo};
-	die "ERROR on $repo in ",dump($fh) unless $r;
+	Carp::confess "ERROR on $repo in ",dump($fh) unless $r;
 	while(<$r>) {
 		if ( m/(\e\[\d*m)?commit [0-9a-f]+/ ) {
 		#if ( m/commit [0-9a-f]+/ ) {
@@ -59,7 +60,7 @@ while(1) {
 	#warn "# date_commit = ",dump($date_commit);
 	my $date = ( sort { $b cmp $a } keys %$date_commit )[0];
 	my $repo = $date_commit->{$date};
-	print "# $date $repo\n$commit->{$repo}";
+	print $less "# $date $repo\n$commit->{$repo}";
 	$commit->{$repo} = $commit_next->{$repo};
 	delete $date_commit->{$date};
 	get_commit $repo;
