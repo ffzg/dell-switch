@@ -260,7 +260,7 @@ fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
 
 print "# gv = ",dump( $gv );
 
-open(my $dot_fh, '>', '/tmp/network.dot');
+open(my $dot_fh, '>', '/dev/shm/network.dot');
 print $dot_fh qq|
 digraph topology {
 graph [ rankdir = LR ]
@@ -307,4 +307,5 @@ print $dot_fh qq|
 }
 |;
 
-system "dot -Tsvg /tmp/network.dot > /var/www/network.svg";
+system "dot -Tsvg /dev/shm/network.dot > /var/www/network.svg";
+system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot';
