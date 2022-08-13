@@ -1,0 +1,2 @@
+cat /dev/shm/neighbors.tab | grep MikroTik | tee /dev/stderr | awk '{ print $7 "_" $8 " " $3 }' | sort > /dev/shm/name-mac
+git -C /dev/shm commit -m $( date +%Y%m%d ) name-mac
