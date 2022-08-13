@@ -18,18 +18,22 @@ my $debug = $ENV{DEBUG} || 0;
 
 my @cols = qw( ifName ifHighSpeed ifAdminStatus ifOperStatus ifType dot1dStpPortPathCost ifAlias );
 
+my @name_mac_files = ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC}, glob '/dev/shm/name-mac*' );
 my $mac2name;
 
-foreach my $name_mac ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC} ) {
+foreach my $name_mac ( @name_mac_files ) {
 	next unless -e $name_mac;
 	open(my $f, '<'. $name_mac);
+	my $count = 0;
 	while(<$f>) {
 		chomp;
 		#my ( $ip, $name, $mac ) = split(/ /,$_);
 		my ( $name, $mac ) = split(/ /,$_);
 		$mac = lc($mac);
 		$mac2name->{$mac} = $name;
+		$count++;
 	}
+	warn "## $name_mac $count";
 }
 
 sub mac2name {
