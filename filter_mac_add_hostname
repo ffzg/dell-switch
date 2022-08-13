@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use autodie;
+
+use Data::Dump qw(dump);
+
+$|=1; # flush stdout
+
+my $debug = $ENV{DEBUG} || 0;
+
+my @name_mac_files = ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC}, glob '/dev/shm/name-mac*' );
+my $mac2name;
+
+foreach my $name_mac ( @name_mac_files ) {
+	next unless -e $name_mac;
+	open(my $f, '<'. $name_mac);
+	my $count = 0;
+	while(<$f>) {
+		chomp;
+		#my ( $ip, $name, $mac ) = split(/ /,$_);
+		my ( $name, $mac ) = split(/ /,$_);
+		$mac = lc($mac);
+		$mac2name->{$mac} = $name;
+		$count++;
+	}
+	warn "## $name_mac $count";
+}
+
+sub mac2name {
+	my ( $mac, $name ) = @_;
+
+	$mac = lc($mac);
+	if ( exists $mac2name->{$mac} ) {
+		my $mac_name = $mac2name->{$mac};
+		warn "ERROR: name different $name != $mac_name" if $name && $name ne $mac_name;
+		#return ( $mac, $mac_name );
+		return $mac . ' ' . $mac_name;
+	}
+	#return ( $mac, $name );
+	return $mac;
+}
+
+warn "# mac2name = ",dump($mac2name) if $debug;
+
+sub fix_mac {
+	my $mac = shift;
+	$mac = lc($mac);
+	$mac =~ s/^([0-9a-f]):/0$1:/;
+	while ( $mac =~ s/:([0-9a-f]):/:0$1:/g ) {};
+	$mac =~ s/:([0-9a-f])$/:0$1/;
+#	warn "# $mac\n";
+	return $mac;
+}
+
+while(<>) {
+	s/((:?[0-9A-Fa-f]{2}[:-]){5}(:?[0-9A-Fa-f]{2}))/mac2name($1)/ge;
+	print;
+}
