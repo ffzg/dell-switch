@@ -292,17 +292,17 @@ foreach my $sw1 ( sort keys %$gv ) {
 	}
 }
 
-foreach my $n ( keys %$node ) {
+foreach my $n ( sort keys %$node ) {
 	no warnings;
 	my @port_sw =
-		sort { $a->[0] <=> $b->[0] }
+		sort { join(' ',@$a) <=> join(' ',@$b) }
 		@{ $node->{$n} };
 	print $dot_fh qq!"$n" [ label="!.uc($n).'|' . join('|', map {
 		sprintf "<%d>%2d %s%s", $_->[0], $_->[0], $_->[1], $_->[2] eq 'no_port' ? '' : ' ' . $_->[2]
 	} @port_sw ) . qq!" ];\n!;
 }
 
-foreach my $e ( @edges ) {
+foreach my $e ( sort { join(' ',@$a) cmp join(' ', @$b) } @edges ) {
 	no warnings;
 	print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
 }
