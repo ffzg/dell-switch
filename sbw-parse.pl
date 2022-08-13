@@ -312,4 +312,4 @@ print $dot_fh qq|
 |;
 
 system "dot -Tsvg /dev/shm/network.dot > /var/www/network.svg";
-system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot';
+system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot' if ! $debug;
