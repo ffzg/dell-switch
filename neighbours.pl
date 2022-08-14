@@ -159,8 +159,14 @@ foreach my $file ( glob('log/*lldp*') ) {
 
 # prase MikroTik /ip neighbor print detail terse
 
-foreach my $file ( glob('../mikrotik-switch/out/*neighbor*'), glob('../tilera/out/*neighbor*') ) {
-	my $name = $1 if $file =~ m{out/([\w\-]+)\.ip neighbor};
+my $patt = 'ip neighbor print detail terse';
+$patt =~ s{\s}{\\ }g; # escape spaces
+my @files = ( map { $_ . '/*' . $patt } qw( ../mikrotik-switch/out/ ../tilera/out/ ));
+@files = map { glob $_ } @files;
+warn "XXX $patt files=",dump(\@files) if $debug;
+
+foreach my $file ( @files ) {
+	my $name = $1 if $file =~ m{out/+([\w\-]+)\.ip neighbor};
 	print "## [$name] file $file\n" if $debug;
 	open(my $f, '<', $file);
 	while(<$f>) {
