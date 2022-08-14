@@ -2,12 +2,18 @@
 use warnings;
 use strict;
 use autodie;
-
-# ./sw-name-mac.sh
-# ./sw-names | xargs -i ./dell-switch.pl {} 'show lldp neighbors'
-# /home/dpavlin/mikrotik-switch/m-neighbour
-
 use Data::Dump qw(dump);
+
+if ( $ARGV[0] eq 'update' ) {
+	print <<__SH__
+./sw-name-mac.sh
+./sw-names | xargs -i ./dell-switch.pl {} 'show lldp neighbors'
+/home/dpavlin/mikrotik-switch/m-neighbour
+__SH__
+	;
+	exit 0;
+};
+
 
 my $debug = $ENV{DEBUG} || 0;
 
@@ -30,6 +36,7 @@ while(<$f>) {
 
 sub mac2name {
 	my ( $mac, $name ) = @_;
+	return unless defined $mac;
 
 	$mac = lc($mac);
 
