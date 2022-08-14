@@ -20,6 +20,7 @@ my @cols = qw( ifName ifHighSpeed ifAdminStatus ifOperStatus ifType dot1dStpPort
 
 my @name_mac_files = ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC}, glob '/dev/shm/name-mac*' );
 my $mac2name;
+my $mac_name_use;
 
 foreach my $name_mac ( @name_mac_files ) {
 	next unless -e $name_mac;
@@ -31,6 +32,7 @@ foreach my $name_mac ( @name_mac_files ) {
 		my ( $name, $mac ) = split(/ /,$_);
 		$mac = lc($mac);
 		$mac2name->{$mac} = $name;
+		$mac_name_use->{$name} = 0;
 		$count++;
 	}
 	warn "## $name_mac $count";
@@ -298,18 +300,41 @@ foreach my $n ( sort keys %$node ) {
 		sort { join(' ',@$a) <=> join(' ',@$b) }
 		@{ $node->{$n} };
 	print $dot_fh qq!"$n" [ label="!.uc($n).'|' . join('|', map {
+		$mac_name_use->{$_->[1]}++;
 		sprintf "<%d>%2d %s%s", $_->[0], $_->[0], $_->[1], $_->[2] eq 'no_port' ? '' : ' ' . $_->[2]
 	} @port_sw ) . qq!" ];\n!;
 }
 
 foreach my $e ( sort { join(' ',@$a) cmp join(' ', @$b) } @edges ) {
 	no warnings;
-	print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
+	if ( $e->[3] == 0 ) {
+		print $dot_fh sprintf qq{ "%s":%d -> "%s"\n}, $e->[0], $e->[2], $e->[1];
+	} else {
+		print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
+	}
 }
+
+sub git_commit {
+	my $file = shift;
+	$file =~ s{/dev/shm/}{} && warn "## git_commit $file";
+	system "git -C /dev/shm add -f $file";
+	system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) ' . $file if ! $debug;
+}
+
+warn "## mac_name_use ",dump( $mac_name_use );
+
+my @mac_name_use_zero = sort grep { $mac_name_use->{$_} == 0 } keys %$mac_name_use;
+warn "# mac_name_use_zero=",dump( \@mac_name_use_zero );
+open(my $zero_fh, '>', '/dev/shm/mac_name_use.0');
+print $zero_fh "$_\n" foreach @mac_name_use_zero;
+close($zero_fh);
+git_commit 'mac_name_use.0';
 
 print $dot_fh qq|
 }
 |;
+close($dot_fh);
+git_commit 'network.dot';
 
 system "dot -Tsvg /dev/shm/network.dot > /var/www/network.svg";
 system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot' if ! $debug;
