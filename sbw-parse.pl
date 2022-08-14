@@ -326,7 +326,9 @@ warn "## mac_name_use ",dump( $mac_name_use );
 my @mac_name_use_zero = sort grep { $mac_name_use->{$_} == 0 } keys %$mac_name_use;
 warn "# mac_name_use_zero=",dump( \@mac_name_use_zero );
 open(my $zero_fh, '>', '/dev/shm/mac_name_use.0');
-print $zero_fh "$_\n" foreach @mac_name_use_zero;
+print $zero_fh "$_\n" foreach map {
+	s/^msw_//; $_; # remote msw_ prefix and leave only mac
+} @mac_name_use_zero;
 close($zero_fh);
 git_commit 'mac_name_use.0';
 
