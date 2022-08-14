@@ -315,10 +315,10 @@ foreach my $e ( sort { join(' ',@$a) cmp join(' ', @$b) } @edges ) {
 }
 
 sub git_commit {
+	return if $debug;
 	my $file = shift;
 	$file =~ s{/dev/shm/}{} && warn "## git_commit $file";
-	system "git -C /dev/shm add -f $file";
-	system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) ' . $file if ! $debug;
+	system qq{git -C /dev/shm add -f $file && git -C /dev/shm commit -m "\$( date +%Y-%m-%d ) $file" $file };
 }
 
 warn "## mac_name_use ",dump( $mac_name_use );
@@ -337,4 +337,7 @@ close($dot_fh);
 git_commit 'network.dot';
 
 system "dot -Tsvg /dev/shm/network.dot > /var/www/network.svg";
-system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot' if ! $debug;
+#system 'git -C /dev/shm commit -m $( date +%Y-%m-%d ) network.dot' if ! $debug;
+
+warn "# strange neihbours:";
+system "grep -f /dev/shm/mac_name_use.0 /dev/shm/neighbors.tab";
