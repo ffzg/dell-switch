@@ -30,6 +30,7 @@ foreach my $name_mac ( @name_mac_files ) {
 		chomp;
 		#my ( $ip, $name, $mac ) = split(/ /,$_);
 		my ( $name, $mac ) = split(/ /,$_);
+		$name =~ s/_/ /g;	# replace underscore with space
 		$mac = lc($mac);
 		$mac2name->{$mac} = $name;
 		$mac_name_use->{$name} = 0;
@@ -270,7 +271,7 @@ open(my $dot_fh, '>', '/dev/shm/network.dot');
 print $dot_fh qq|
 digraph topology {
 graph [ rankdir = LR ]
-node [ shape = record ]
+node [ shape = record; fontname="Helvetica" ]
 edge [ color = "gray" ]
 |;
 
@@ -308,7 +309,7 @@ foreach my $n ( sort keys %$node ) {
 foreach my $e ( sort { join(' ',@$a) cmp join(' ', @$b) } @edges ) {
 	no warnings;
 	if ( $e->[3] == 0 ) {
-		print $dot_fh sprintf qq{ "%s":%d -> "%s"\n}, $e->[0], $e->[2], $e->[1];
+		#print $dot_fh sprintf qq{ "%s":%d -> "%s"\n}, $e->[0], $e->[2], $e->[1];
 	} else {
 		print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
 	}
@@ -327,7 +328,7 @@ my @mac_name_use_zero = sort grep { $mac_name_use->{$_} == 0 } keys %$mac_name_u
 warn "# mac_name_use_zero=",dump( \@mac_name_use_zero );
 open(my $zero_fh, '>', '/dev/shm/mac_name_use.0');
 print $zero_fh "$_\n" foreach map {
-	s/^msw_//; $_; # remote msw_ prefix and leave only mac
+	s/^\w+\s//; $_; # remote msw_ prefix and leave only mac
 } @mac_name_use_zero;
 close($zero_fh);
 git_commit 'mac_name_use.0';
