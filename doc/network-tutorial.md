@@ -29,3 +29,9 @@ run neigbours.pl before this
 ```
 
 https://black.ffzg.hr/network.svg
+
+# see all devices on switch ports
+
+```
+cat /dev/shm/snmp-mac-port/sw-fond | sort -k 4 -n | ./filter_mac_add_hostname | less
+```
