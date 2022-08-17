@@ -1,8 +1,4 @@
-#!/bin/sh -xe
-
-sw=sw-aula
-sw=sw-ctrl
-sw=sw-lib-wifi
+#!/bin/sh -e
 
 if [ -z "$1" ] ; then
 	#cat /dev/shm/sw.dead | while read sw ; do
