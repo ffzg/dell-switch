@@ -1,4 +1,4 @@
 #!/bin/sh -e
 
-cat /dev/shm/neighbors.tab | grep MikroTik | tee /dev/stderr | awk '{ print "msw_" $3 " " $3 }' | sort > /dev/shm/name-mac.mikrotik
+cat /dev/shm/neighbors.tab | grep MikroTik | grep -v 10.20 | tee /dev/stderr | awk '{ print "msw_" $3 " " $3 }' | sort > /dev/shm/name-mac.mikrotik
 git -C /dev/shm commit -m $( date +%Y%m%d ) name-mac.mikrotik
