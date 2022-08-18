@@ -30,6 +30,15 @@ run neigbours.pl before this
 
 https://black.ffzg.hr/network.svg
 
+
+# vlan mappings on switches
+
+```
+cat /dev/shm/vlans | ./filter_neighbours | less
+```
+
+
+
 # see all devices on switch ports
 
 ```

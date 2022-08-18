@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use autodie;
+
+use Data::Dump qw(dump);
+
+$|=1; # flush stdout
+
+my $debug = $ENV{DEBUG} || 0;
+
+my %neighbours;
+open(my $n_fh, '<', '/dev/shm/neighbors.tab');
+while(<$n_fh>) {
+	chomp;
+	my @v = split(/\t/,$_);
+	my ($sw,$port) = @v;
+	$port =~ s{\D+}{};
+	$neighbours{$sw}{$port} = \@v;
+}
+
+warn "# neighbours = ", dump( \%neighbours );
+
+sub sw_port {
+	my ( $sw, $port, $rest ) = @_;
+	my $port_o = $port;
+	$port =~ s{\D+}{};
+	if ( exists $neighbours{$sw} ) {
+		if ( exists $neighbours{$sw}{$port} ) {
+			#warn "# sw_port $sw $port ",dump( $neighbours{$sw}{$port} );
+			my $v = $neighbours{$sw}{$port};
+			return "$sw $port_o $rest >>>> $v->[4] $v->[3]";
+		}
+	}
+	return "$sw $port_o $rest";
+}
+
+while(<>) {
+	s/(sw-\S+) (\S+) (.+)/sw_port($1,$2,$3)/ge;
+	print;
+}
