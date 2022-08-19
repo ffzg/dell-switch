@@ -18,26 +18,11 @@ my $debug = $ENV{DEBUG} || 0;
 
 my @cols = qw( ifName ifHighSpeed ifAdminStatus ifOperStatus ifType dot1dStpPortPathCost ifAlias );
 
-my @name_mac_files = ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC}, glob '/dev/shm/name-mac*' );
-my $mac2name;
-my $mac_name_use;
+use lib 'lib';
+use name2mac;
 
-foreach my $name_mac ( @name_mac_files ) {
-	next unless -e $name_mac;
-	open(my $f, '<'. $name_mac);
-	my $count = 0;
-	while(<$f>) {
-		chomp;
-		#my ( $ip, $name, $mac ) = split(/ /,$_);
-		my ( $name, $mac ) = split(/ /,$_);
-		$name =~ s/_/ /g;	# replace underscore with space
-		$mac = lc($mac);
-		$mac2name->{$mac} = $name;
-		$mac_name_use->{$name} = 0;
-		$count++;
-	}
-	warn "## $name_mac $count";
-}
+$name2mac::debug = 1;
+my $mac2name = $name2mac::mac2name;
 
 sub mac2name {
 	my ( $mac, $name ) = @_;
@@ -52,8 +37,8 @@ sub mac2name {
 	return ( $mac, $name );
 }
 
-warn "# mac2name = ",dump($mac2name) if $debug;
 
+my $mac_name_use;
 
 my $sw;
 
