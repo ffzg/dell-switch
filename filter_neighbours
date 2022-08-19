@@ -15,6 +15,7 @@ while(<$n_fh>) {
 	chomp;
 	my @v = split(/\t/,$_);
 	my ($sw,$port) = @v;
+	$port =~ s{,bridge.*}{}; # remove interface
 	$port =~ s{\D+}{};
 	$neighbours{$sw}{$port} = \@v;
 }
