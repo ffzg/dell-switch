@@ -84,9 +84,10 @@ foreach my $file ( @files ) {
 	open(my $f, '<', $file);
 	while(<$f>) {
 		chomp;
-		if ( m/::(sysName|sysLocation|ipDefaultTTL|dot1dStpPriority|dot1dStpTopChanges|dot1dStpDesignatedRoot|dot1dStpRootCost|dot1dStpRootPort|dot1qNumVlans)\./ ) {
+		if ( m/::(sysName|sysLocation|ipDefaultTTL|dot1dStpPriority|dot1dStpTopChanges|dot1dStpDesignatedRoot|dot1dStpRootCost|dot1dStpRootPort|dot1qNumVlans|dot1dBaseBridgeAddress)\./ ) {
 			my ( undef, $v ) = split(/ = \w+: /,$_,2);
-			$sw->{$name}->{$1} = $v;
+			$v = fix_mac($v) if $1 eq 'dot1dBaseBridgeAddress';
+			$sw->{$name}->{_}->{$1} = $v;
 		} elsif ( m/::(ifMtu|ifHighSpeed|ifSpeed)\[(\d\d?)\] = (?:INTEGER|Gauge32): (\d+)/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
 			# Dell PowerConnect 5548 doeesn't have ifHighSpeed
