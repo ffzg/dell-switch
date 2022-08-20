@@ -39,7 +39,18 @@ sub fix_mac {
 	return $mac;
 }
 
+# 744D.283D.3733
+sub mac4 {
+	my $mac = shift;
+warn "XXX mac4 ",dump($mac);
+	$mac =~ s{([0-9A-F]{2})([0-9A-F]{2})}{$1:$2}g;
+	$mac =~ s{\.}{:}g;
+	return lc($mac);
+}
+
 while(<>) {
+	# 744D.283D.3733
+	s/([0-9A-F]{4}\.[0-9A-F]{4}\.[0-9A-F]{4})/mac4($1)/ge;
 	s/((:?[0-9A-Fa-f]{2}[:-]){5}(:?[0-9A-Fa-f]{2}))/mac2name($1)/ge;
 	print;
 }
