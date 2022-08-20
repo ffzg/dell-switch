@@ -27,7 +27,7 @@ git -C $m_path/out grep -C 1 'root-bridge: yes'
 echo "# root bridge"
 (
 git -C $m_path/out grep root-bridge-id | cut -d. -f 1,3 | sed 's/\./ /'
-git -C log grep -A 4 'Root ID' '*active*' | grep Address | sed 's/_/ /g' | awk '{ print $2 " " $7 }'
+git -C log grep -A 4 -i 'Root ID' '*active*' | grep Address | sed 's/_/ /g' | awk '{ print $2 " " $7 }'
 ) | sort -k 2 | column -t
 
 echo "# STP only (RSTP ignored) -- should be empty if OK"
