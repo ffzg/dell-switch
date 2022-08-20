@@ -243,6 +243,10 @@ while(<$n_fh>) {
 
 	$gv->{$sw1}->{$port1_nr}->{$sw2}->{$port2_nr} = [ $port1, $port2 ];
 	delete $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'} if exists $gv->{$sw1}->{$port1_nr}->{$sw2}->{'no_port'};
+	if ( $sw1 =~ /sw/ && $sw2 =~ /sw/ ) {
+		# ensure that connection between switches are bi-deirectional
+		$gv->{$sw2}->{$port2_nr}->{$sw1}->{$port1_nr} = [ $port2, $port1 ];
+	}
 }
 
 # FIXME sw-b101 doesn't have lldp so we insert data here manually from pictures
