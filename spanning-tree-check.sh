@@ -22,6 +22,7 @@ echo "# active roots"
 git -C log grep -B 4 'switch is' '*active*'
 #git -C log grep -B 4 'regional Root' '*active*'
 #git -C log grep -B 3 'CST ROOT' '*active*'
+echo "--" # little separator before mikrotik as between switches
 git -C $m_path/out grep -C 1 'root-bridge: yes'
 
 echo "# root bridge"
