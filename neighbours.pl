@@ -17,26 +17,15 @@ __SH__
 
 my $debug = $ENV{DEBUG} || 0;
 
-my $mac2name;
-
-open(my $f, '<'. '/dev/shm/sw-name-mac');
-while(<$f>) {
-	chomp;
-	#my ( $ip, $name, $mac ) = split(/ /,$_);
-	my ( $name, $mac ) = split(/ /,$_);
-	$mac = lc($mac);
-	if ( defined $mac2name->{$mac} ) {
-		if ( $mac2name->{$mac} ne $name ) {
-			warn "ERROR: GOT $mac with $mac2name->{$mac} and now trying to overwrite it with $name\n";
-		}
-	} else {
-		$mac2name->{$mac} = $name;
-	}
-}
+use lib 'lib';
+use name2mac;
+my $mac2name = $name2mac::mac2name;
+warn "# mac2name = ",dump($mac2name); # if $debug;
 
 sub mac2name {
 	my ( $mac, $name ) = @_;
 	return unless defined $mac;
+
 
 	$mac = lc($mac);
 
@@ -47,8 +36,6 @@ sub mac2name {
 	}
 	return ( $mac, $name );
 }
-
-warn "# mac2name = ",dump($mac2name) if $debug;
 
 open(my $n_fh, '>', '/dev/shm/neighbors.tab');
 open(my $html_fh, '>', '/var/www/neighbors.html');
@@ -209,3 +196,6 @@ foreach my $file ( @files ) {
 }
 
 print $html_fh qq{</table>\n};
+
+close($n_fh);
+#system "git -C /dev/shm/ commit -m neighbors.tab neighbors.tab";
