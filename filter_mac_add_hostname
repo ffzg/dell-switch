@@ -9,23 +9,9 @@ $|=1; # flush stdout
 
 my $debug = $ENV{DEBUG} || 0;
 
-my @name_mac_files = ( qw( /dev/shm/sw-name-mac /dev/shm/wap-name-mac ), $ENV{NAME_MAC}, glob '/dev/shm/name-mac*' );
-my $mac2name;
-
-foreach my $name_mac ( @name_mac_files ) {
-	next unless -e $name_mac;
-	open(my $f, '<'. $name_mac);
-	my $count = 0;
-	while(<$f>) {
-		chomp;
-		#my ( $ip, $name, $mac ) = split(/ /,$_);
-		my ( $name, $mac ) = split(/ /,$_);
-		$mac = lc($mac);
-		$mac2name->{$mac} = $name;
-		$count++;
-	}
-	warn "## $name_mac $count";
-}
+use lib 'lib';
+use name2mac;
+my $mac2name = $name2mac::mac2name;
 
 sub mac2name {
 	my ( $mac, $name ) = @_;
