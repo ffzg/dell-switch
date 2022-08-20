@@ -84,7 +84,7 @@ foreach my $file ( @files ) {
 	open(my $f, '<', $file);
 	while(<$f>) {
 		chomp;
-		if ( m/::(sysName|sysLocation|ipDefaultTTL|dot1dStpPriority|dot1dStpTopChanges|dot1dStpDesignatedRoot|dot1dStpRootCost|dot1dStpRootPort|dot1qNumVlans|dot1dBaseBridgeAddress)\./ ) {
+		if ( m/::(sysName|sysLocation|ipDefaultTTL|dot1dStpPriority|dot1dStpTopChanges|dot1dStpDesignatedRoot|dot1dStpRootCost|dot1dStpRootPort|dot1qNumVlans|dot1dBaseBridgeAddress|dot1dStpRootCost|dot1dStpRootPort)\./ ) {
 			my $n = $1;
 			my ( undef, $v ) = split(/ = \S+: /,$_,2);
 
@@ -98,6 +98,7 @@ foreach my $file ( @files ) {
 			}
 
 			$sw->{$name}->{_}->{$n} = $v;
+
 		} elsif ( m/::(ifMtu|ifHighSpeed|ifSpeed)\[(\d\d?)\] = (?:INTEGER|Gauge32): (\d+)/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
 			# Dell PowerConnect 5548 doeesn't have ifHighSpeed
@@ -311,7 +312,15 @@ foreach my $e ( sort { join(' ',@$a) cmp join(' ', @$b) } @edges ) {
 	if ( $e->[3] == 0 ) {
 		#print $dot_fh sprintf qq{ "%s":%d -> "%s"\n}, $e->[0], $e->[2], $e->[1];
 	} else {
-		print $dot_fh sprintf qq{ "%s":%d -> "%s":%d\n}, $e->[0], $e->[2], $e->[1], $e->[3];
+		my $attr;
+		if ( $e->[2] == $sw->{$e->[0]}->{_}->{dot1dStpRootPort} ) {
+			$attr = "arrowtail=crow";
+		} elsif ( $e->[3] == $sw->{ $e->[1] }->{_}->{dot1dStpRootPort} ) {
+			$attr = "arrowhead=crow";
+		}
+		$attr = " [ $attr ]" if $attr;
+
+		print $dot_fh sprintf qq{ "%s":%d -> "%s":%d%s\n}, $e->[0], $e->[2], $e->[1], $e->[3], $attr;
 	}
 }
 
