@@ -25,8 +25,13 @@ m=/home/dpavlin/mikrotik-switch
 	#echo "/interface ethernet print where comment=\"$sw\""
 	#echo "/interface ethernet disable"
 	#echo ~/mikrotik-switch/m-ssh $on_sw
-	#$m/m-ssh-out $on_sw '/interface ethernet print' | grep -A 1 $sw
-	port_nr=$( grep $sw ../mikrotik-switch/out/$on_sw*ethernet*print | awk '{ print $1 }' )
+	
+	$m/m-ssh-out $on_sw '/interface ethernet print' | grep $sw'.$'
+	# cr/lf line endings, so end of line is .$
+	port_nr=$( grep $sw'.$' ../mikrotik-switch/out/$on_sw*ethernet*print | awk '{ print $1 }' )
+	echo "## $on_sw $port_nr -> $sw"
+	test -z "$port_nr" && echo "no port for $sw on $on_sw" && exit 1
+
 	$m/m-ssh $on_sw "/interface ethernet disable $port_nr"
 	sleep 5
 	$m/m-ssh $on_sw "/interface ethernet enable $port_nr"
