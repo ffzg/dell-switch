@@ -80,7 +80,7 @@ foreach my $file ( @files ) {
 	} else {
 		warn "WARNING: using old file $file\n";
 	}
-
+# dot1qPvid
 	open(my $f, '<', $file);
 	while(<$f>) {
 		chomp;
@@ -230,6 +230,9 @@ while(<$n_fh>) {
 	my ( $sw1, $port1, undef, $port2, $sw2, undef ) = split(/\t/, $_, 6 );
 	next if $port2 =~ m/:/; # skip mac in port number (wap lldp leek)
 	next unless $sw2 && $port2;
+
+	next if $sw1 eq 'sw-core' || $sw2 eq 'sw-core';	# FIXME skip all sw-core
+
 	$sw1 = fix_sw_name($sw1);
 	my $port1_nr = port2number( $sw1, $port1 );
 	my $port2_nr = port2number( $sw2, $port2 );
@@ -257,14 +260,26 @@ sub fake_gv {
 	$gv->{$sw2}->{$p2}->{$sw1}->{$p1} = [ $p2, $p1 ];
 }
 delete $gv->{'sw-b101'};
-fake_gv( 'sw-b101' => 3, 'sw-b101' => 4 ); # vlan1-to-vlan2 / vlan2-to-vlan1
+#fake_gv( 'sw-b101' => 3, 'sw-b101' => 4 ); # vlan1-to-vlan2 / vlan2-to-vlan1
 
-fake_gv( 'sw-b101' => 21, 'sw-rack2' => 50 );
+#fake_gv( 'sw-b101' => 21, 'sw-rack2' => 50 );
 fake_gv( 'sw-b101' => 23, 'sw-lib-srv' => 48 );
 fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
 
 #delete $gv->{'sw-ganeti'};
 # spf-16 -> "sw-rack2"        => { 2 => ["16-sfp-uplink-b101,bridge", "te1/0/2"] },
+
+fake_gv( 'sw-core' => 2, 'sw-dpc-2' => 16 );
+
+# remove mikrotik multiple devices on same port
+foreach my $sw1 ( keys %$gv ) {
+	foreach my $p1 ( keys %{ $gv->{$sw1} } ) {
+		my @sw2 = keys %{ $gv->{$sw1}->{$p1} };
+		if ( scalar @sw2 > 1 ) {
+			warn "XXX more than 1 port for $sw1 $p1 ", dump( $gv->{$sw1}->{$p1} );
+		}
+	}
+}
 
 print "# gv = ",dump( $gv );
 
