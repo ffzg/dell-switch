@@ -302,7 +302,7 @@ foreach my $sw1 ( sort keys %$gv ) {
 				next;
 			}
 			#push @{ $node->{$sw1} }, [ $p1, $sw2 ];
-			foreach my $p2 ( keys %{ $gv->{$sw1}->{$p1}->{$sw2} } ) {
+			foreach my $p2 ( sort { $a <=> $b } keys %{ $gv->{$sw1}->{$p1}->{$sw2} } ) {
 				push @edges, [ $sw1, $sw2, $p1, $p2 ];
 				##push @{ $node->{$sw2} }, [ $p2, $sw1 ];
 				push @{ $node->{$sw1} }, [ $p1, $sw2, $p2 ];
