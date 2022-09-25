@@ -277,6 +277,11 @@ fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
 
 fake_gv( 'sw-core' => 2, 'sw-dpc-2' => 16 );
 
+fake_gv( 'sw-core' => 7, 'sw-b101' => 5 );	# 4 port lacp
+fake_gv( 'sw-core' => 8, 'sw-b101' => 6 );
+fake_gv( 'sw-core' => 9, 'sw-b101' => 7 );
+fake_gv( 'sw-core' => 10, 'sw-b101' => 8 );
+
 # remove mikrotik multiple devices on same port
 foreach my $sw1 ( keys %$gv ) {
 	foreach my $p1 ( keys %{ $gv->{$sw1} } ) {
