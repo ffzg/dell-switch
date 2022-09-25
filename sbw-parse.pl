@@ -113,6 +113,7 @@ foreach my $file ( @files ) {
 			if ( $1 eq 'ifName' ) {
 				my ( $if_name, $port ) = ($3,$2);
 				$sw->{$name}->{port_name_to_number}->{$if_name} = $port;
+				$sw->{$name}->{port_number_to_name}->{$port}    = $if_name;
 			}
 			if ( $1 eq 'ifDescr' ) { # some switches miss ifName
 				my ( $if_name, $port ) = ($3,$2);
@@ -122,6 +123,8 @@ foreach my $file ( @files ) {
 					if ( ! exists $sw->{name}->{'ifName'} );
 				$sw->{$name}->{port_name_to_number}->{$if_name} = $port 
 					if ( ! exists $sw->{$name}->{port_name_to_number}->{$if_name} );
+				$sw->{$name}->{port_number_to_name}->{$port} = $if_name 
+					if ( ! exists $sw->{$name}->{port_number_to_name}->{$port} );
 			}
 		} elsif ( m/::(ifAdminStatus|ifOperStatus|ifType|dot3StatsDuplexStatus)\[(\d\d?)\] = INTEGER: (\w+)\(/ ) {
 			$sw->{$name}->{$1}->[$2] = $3;
@@ -257,8 +260,10 @@ while(<$n_fh>) {
 # FIXME sw-b101 doesn't have lldp so we insert data here manually from pictures
 sub fake_gv {
 	my ($sw1, $p1, $sw2, $p2) = @_;
-	$gv->{$sw1}->{$p1}->{$sw2}->{$p2} = [ $p1, $p2 ];
-	$gv->{$sw2}->{$p2}->{$sw1}->{$p1} = [ $p2, $p1 ];
+	my $p1n = $sw->{$sw1}->{port_number_to_name}->{$p1};
+	my $p2n = $sw->{$sw2}->{port_number_to_name}->{$p2};
+	$gv->{$sw1}->{$p1}->{$sw2}->{$p2} = [ $p1n, $p2n ];
+	$gv->{$sw2}->{$p2}->{$sw1}->{$p1} = [ $p2n, $p1n ];
 }
 delete $gv->{'sw-b101'};
 #fake_gv( 'sw-b101' => 3, 'sw-b101' => 4 ); # vlan1-to-vlan2 / vlan2-to-vlan1
