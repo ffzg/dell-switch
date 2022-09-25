@@ -10,6 +10,7 @@ use autodie;
 # cat /dev/shm/neighbors.tab | grep MikroTik | tee /dev/stderr | awk '{ print $7 "_" $8 " " $3 }' > /tmp/name-mac
 # NAME_MAC=/tmp/name-mac ./sbw-parse.pl
 
+use Storable;
 use Data::Dump qw(dump);
 
 $|=1; # flush stdout
@@ -282,6 +283,7 @@ foreach my $sw1 ( keys %$gv ) {
 }
 
 print "# gv = ",dump( $gv );
+Storable::store( $gv, '/tmp/gv.storable' );
 
 open(my $dot_fh, '>', '/dev/shm/network.dot');
 print $dot_fh qq|
