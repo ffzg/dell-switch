@@ -2,11 +2,13 @@
 
 # Usage: $0 [sw [oid]]
 
-dir=/dev/shm/snmpbulkwalk/
-if [ ! -d $dir ] ; then
-	mkdir $dir
-	ln -sv `pwd`/snmpbulkwalk/.git $dir/
-fi
+#dir=/dev/shm/snmpbulkwalk/
+#if [ ! -d $dir ] ; then
+#	mkdir $dir
+#	ln -sv `pwd`/snmpbulkwalk/.git $dir/
+#fi
+
+dir=/home/dpavlin/dell-switch/snmpbulkwalk/
 
 . ./snmp.conf
 
