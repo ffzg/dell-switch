@@ -41,7 +41,6 @@ m=/home/dpavlin/mikrotik-switch
 	echo "XXX $m/m-ssh $on_sw '/interface bridge port set 2 edge=auto'"
 done
 
-
 grep ^$sw /dev/shm/neighbors.tab | sed 's/\t/ /g' | while read sw if mac on_port on_switch rest ; do
 	echo "# [$on_switch] [$on_port]"
 # # [sw-aula] [g22]
@@ -58,7 +57,8 @@ grep ^$sw /dev/shm/neighbors.tab | sed 's/\t/ /g' | while read sw if mac on_port
 # configure
 # interface Gigabitethernet 1/0/51
 #
-	sh -x ./ssh-switch-port-down-up $on_switch $on_port
+	echo "RUN MANUALLY IF CORRECT"
+	echo ./ssh-switch-port-down-up $on_switch $on_port
 done
 
 
