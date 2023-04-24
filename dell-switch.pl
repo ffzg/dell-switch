@@ -116,7 +116,10 @@ while() {
 			last;
 		}
 	} elsif ( $buff =~ m/% Unrecognized command/ ) {
-		exit 1;
+		#exit 1;
+		warn "SKIP $command\n";
+		$buff = '';
+
 	} elsif ( $buff =~ m/% Invalid input detected at .* marker/ ) {
 
 		# try to rewrite command differences
