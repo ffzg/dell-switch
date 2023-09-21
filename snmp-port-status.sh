@@ -47,7 +47,7 @@ done
 # add switch name prefix
 cat $dir/$sw | sed "s/^/$sw /" > $dir/$sw.new && mv $dir/$sw.new $dir/$sw
 
-cat $dir/$sw
+cat $dir/$sw | grep -v ' down ' | grep -v notPresent
 
 test ! -z "$extra" && exit 0 # don't commit if we have custom oids
 
