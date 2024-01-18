@@ -4,6 +4,7 @@
 
 log=/dev/shm/snmp-mac-port
 test -d $log || mkdir $log
+#test -e /dev/shm/.git || ln -s /home/dpavlin/dell-switch/snmp-mac-port-git /dev/shm/.git
 
 snmp_walk() {
 	ip=$1
