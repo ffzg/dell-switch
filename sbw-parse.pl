@@ -269,18 +269,18 @@ delete $gv->{'sw-b101'};
 #fake_gv( 'sw-b101' => 3, 'sw-b101' => 4 ); # vlan1-to-vlan2 / vlan2-to-vlan1
 
 #fake_gv( 'sw-b101' => 21, 'sw-rack2' => 50 );
-fake_gv( 'sw-b101' => 23, 'sw-lib-srv' => 48 );
-fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
+#fake_gv( 'sw-b101' => 23, 'sw-lib-srv' => 48 );
+#fake_gv( 'sw-b101' => 24, 'sw-rack1' => 48 );
 
 #delete $gv->{'sw-ganeti'};
 # spf-16 -> "sw-rack2"        => { 2 => ["16-sfp-uplink-b101,bridge", "te1/0/2"] },
 
 fake_gv( 'sw-core' => 2, 'sw-dpc-2' => 16 );
 
-fake_gv( 'sw-core' => 7, 'sw-b101' => 5 );	# 4 port lacp
-fake_gv( 'sw-core' => 8, 'sw-b101' => 6 );
-fake_gv( 'sw-core' => 9, 'sw-b101' => 7 );
-fake_gv( 'sw-core' => 10, 'sw-b101' => 8 );
+#fake_gv( 'sw-core' => 7, 'sw-b101' => 5 );	# 4 port lacp
+#fake_gv( 'sw-core' => 8, 'sw-b101' => 6 );
+#fake_gv( 'sw-core' => 9, 'sw-b101' => 7 );
+#fake_gv( 'sw-core' => 10, 'sw-b101' => 8 );
 
 # remove mikrotik multiple devices on same port
 foreach my $sw1 ( keys %$gv ) {
