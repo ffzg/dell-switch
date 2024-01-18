@@ -12,7 +12,7 @@ test -z "$1" && echo "Usage: $0 d4:ca:6d:01:4c:f2" && exit 1
 
 mac=$1
 
-. ./shm-trunk.regex
+. $(dirname $0)/shm-trunk.regex
 
 grep -r -i $mac /dev/shm/snmp-mac-port/ | tee /dev/shm/mac.$mac | grep --file /dev/shm/trunk.regex -v | cut -d: -f2- | while read name vlan mac port ; do
 	# sw-rack2 - 2c:ea:7f:6f:0c:ec 27
