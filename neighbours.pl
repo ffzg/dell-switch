@@ -189,6 +189,12 @@ foreach my $file ( @files ) {
 
 		( $v[1], $v[3] ) = mac2name( $v[1], $v[3] );
 
+		if ( $v[2] eq 'NIC' ) { # XXX fix NIC Broadcom
+			my ( $host, $if ) = split(/-/, $v[3], 2);
+			$v[3] = $host;
+			$v[2] = $if
+		}
+
 		print "$name ", join(' | ', @v), $/;
 		print $n_fh "$name\t", join("\t", @v ), "\n";
 		print $html_fh "<tr><td>$name</td><td>", join("</td><td>", @v ), "</td></tr>\n";
