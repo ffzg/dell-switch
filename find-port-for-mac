@@ -12,6 +12,11 @@ if [ "$1" = "update" ] ; then
 	exit
 fi
 
+if [ "$1" = "d4:ca:6d:74:8f:2d" ] ; then
+	echo "# SKIP $1 -- tilera"
+	exit
+fi
+
 test -z "$1" && echo "Usage: $0 d4:ca:6d:01:4c:f2" && exit 1
 
 mac=$1
