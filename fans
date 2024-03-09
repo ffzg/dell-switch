@@ -1,3 +1,9 @@
+#!/bin/sh -e
+
+if [ "$1" = "update" ]; then
+	./sw-names | xargs -i echo ./dell-switch.pl {} "'show system'" | parallel
+fi
+
 (
 echo "All fans breakdown by status:"
 grep Fan log/*system* | cut -d: -f3 | sort | uniq -c
