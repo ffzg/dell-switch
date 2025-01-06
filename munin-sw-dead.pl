@@ -39,6 +39,7 @@ while(<$neighbour_fh>) {
 	if ( exists $dead->{$to_sw} ) {
 		print "# $from_sw $from_port $to_sw $to_port\n";
 		print $dead_fh "<tr>\n";
+		print $dead_fh "<th>$to_sw</th>\n";
 		my $group = 'snmp';
 		foreach my $interval ( qw( day week month ) ) {
 
