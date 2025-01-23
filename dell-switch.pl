@@ -130,7 +130,7 @@ while() {
 			$buff = '';
 		}
 
-		warn "# commands_while = ",dump( \@commands_while );
+		#warn "# commands_while = ",dump( \@commands_while );
 
 	} elsif ( $buff =~ s{More: <space>,  Quit: q.*One line: <return>\s*}{} ) {
 		send_pty " ";
@@ -149,6 +149,10 @@ while() {
 		send_pty 'y';
 	} elsif ( $buff =~ s{\QThis command will reset the whole system and disconnect your current session.\E}{}s ) { # reload
 		warn "\nRELOAD detected\n";
+		sleep 0.5;
+		send_pty 'y';
+	} elsif ( $buff =~ s{\QAre you sure you want to save? (y/n)\E}{}s ) { # copy running-config startup-config
+		warn "\nCOPY detected\n";
 		sleep 0.5;
 		send_pty 'y';
 	} elsif ( $buff =~ m{MikroTik RouterOS} ) {
