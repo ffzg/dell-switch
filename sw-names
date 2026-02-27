@@ -2,5 +2,5 @@
 
 # we are extracting switch names from munin config
 
-grep '^\[snmp;sw' /etc/munin/munin.conf | cut -d';' -f2 | sed 's/\]$//'
+grep '^\[snmp;sw' /etc/munin/munin.conf | cut -d';' -f2 | sed 's/\]$//' | grep -v sw-fg
 
