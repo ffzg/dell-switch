@@ -17,6 +17,8 @@ our $debug = $ENV{DEBUG} || 0;
 use lib '.';
 require 'config.pl';
 
+$|=1; # flush STDOUT
+
 #$Net::OpenSSH::debug = ~0;
 
 my $ip = shift @ARGV || die "usage: $0 IP command[ command ...]\n";
@@ -60,7 +62,7 @@ sub send_pty {
 		sleep 0.01;
 
 		sysread $pty, my $echo, 1;
-		print STDERR $echo;
+		print $echo;
 		$buff .= $echo;
 	}
 }
@@ -91,7 +93,7 @@ my @commands_while = ( @commands );
 while() {
 	my $data;
 	my $read = sysread($pty, $data, 1);
-	print STDERR $data;
+	print $data;
 	$buff .= $data;
 	if ( $buff =~ m/User Name:/ ) {
 		send_pty "$login\n";
